@@ -17,6 +17,7 @@
 .editorial-grid{display:grid;grid-template-columns:1.35fr 1fr 1fr;gap:18px;align-items:stretch}
 .editorial-tile{min-width:0;background:#e5d8c8}
 .editorial-tile-feature{grid-row:span 2}
+.editorial-tile:last-child{grid-column:span 2}
 .editorial-tile img{display:block;width:100%;height:265px;object-fit:cover}
 .editorial-tile-feature img{height:calc(100% - 38px);min-height:560px}
 .editorial-tile figcaption{display:flex;justify-content:space-between;gap:8px;min-height:38px;padding:12px 13px 7px;color:#4e4238}
