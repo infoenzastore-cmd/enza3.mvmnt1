@@ -2,19 +2,9 @@
 
 ENZA Movement is a new unified, human-facing marketplace in development for holistic wellbeing products and experiences. The [branded shopper prototype](prototype/) has 14 owner-referenced product concepts across Food, Fashion, Lifestyle and Home, plus discovery, a local cart and past experience references. The former `enza.in` product pages are content references, not the destination for this new checkout.
 
-The public prototype is a static GitHub Pages preview. Its generated imagery, proposed packaging and USD prices are illustrative. It does not create paid orders. The repository also contains a separate local Stellar **Testnet** USDC demo for one sample product and one sample experience; Axess.Zone is not connected. A 14-item cart-order API is prepared but not connected to the public storefront. See [the foundation plan](IMPLEMENTATION_PLAN.md) and [Stellar integration notes](docs/STELLAR_INTEGRATION.md) before extending payment.
+The public prototype is a static GitHub Pages preview. Its generated imagery, proposed packaging and USD prices are illustrative. It does not create paid orders. The repository also contains a separate local Stellar **Testnet** USDC demo for one sample product and one sample experience; Axess.Zone is not connected. See [the foundation plan](IMPLEMENTATION_PLAN.md) and [Stellar integration notes](docs/STELLAR_INTEGRATION.md) before extending payment.
 
 Coding agents must read [AGENTS.md](AGENTS.md) and [thesis.md](thesis.md). This isolated demo uses a disposable server-held Testnet wallet so visitors can authorize sample payments without installing a wallet extension. A production customer checkout still needs a customer-controlled signing flow.
-
-## Pollar Testnet checkout work
-
-Pollar 0.12 is the selected extension-free wallet path for the next Testnet checkout: social or email sign-in, a Stellar wallet, and a user-approved USDC send. Trustless Work handles escrow and milestone release, which is a later option for vendor settlement rather than a replacement for wallet onboarding. Pollar webhooks and Pollar Pay are not available for this integration, so ENZA verifies each payment against Stellar Horizon.
-
-The API now supports `POST /api/checkout/orders` with `{ "customerAddress": "G…", "items": [{ "id": 1, "quantity": 2 }] }`. Prices come from the server's shared 14-product catalogue, and the returned order contains a 28-character unique memo, exact USDC amount and 15-minute expiry. The client must sign a Stellar Testnet payment through Pollar using that memo, then send its hash to `POST /api/orders/{id}/confirm`. Confirmation checks the successful on-chain transaction, memo, official issuer, merchant destination, exact amount, payer address, expiry and hash reuse. A Pollar success response alone never marks an order paid.
-
-The storefront now has a Pollar 0.12 wallet flow: Google sign-in, wallet provisioning status, explicit signature review, a server-priced Testnet order, a USDC payment with its unique memo, and a verified receipt. The Vite build serves it at `/prototype/` from the Node checkout host. The GitHub Pages copy stays in preview mode and never attempts a payment.
-
-This API is not deployed yet. A public deployment needs a `pub_testnet_…` Pollar key, a merchant Testnet G-address with the official Circle Testnet USDC trustline, a persistent `ORDERS_PATH`, and a server host. Set `POLLAR_PUBLISHABLE_KEY` only to the publishable Testnet key; the backend exposes that value in `/api/config` so the browser SDK can use it. Register the checkout host in Pollar's **Build > Domains** as an allowed origin and OAuth redirect URI. `HOST=0.0.0.0` disables the server-held local demo wallet and its `/pay` endpoint. Never use a Pollar secret key in the frontend. Keep the hosted checkout private until one end-to-end Testnet payment is verified.
 
 ## Pages
 
