@@ -29,7 +29,7 @@ let toastTimer;
 let cart = {};
 
 try {
-  const saved = JSON.parse(localStorage.getItem('enza-prototype-cart') || '{}');
+  const saved = JSON.parse(localStorage.getItem('enza-prototype-cart-v2') || '{}');
   if (saved && typeof saved === 'object' && !Array.isArray(saved)) {
     for (const [key, value] of Object.entries(saved)) {
       const id = Number(key);
@@ -39,7 +39,7 @@ try {
 } catch { cart = {}; }
 
 function persistCart() {
-  try { localStorage.setItem('enza-prototype-cart', JSON.stringify(cart)); } catch { /* private mode may block storage */ }
+  try { localStorage.setItem('enza-prototype-cart-v2', JSON.stringify(cart)); } catch { /* private mode may block storage */ }
 }
 
 function showToast(message) {
