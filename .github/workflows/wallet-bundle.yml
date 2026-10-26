@@ -1,0 +1,33 @@
+name: Bundle Pollar wallet
+
+on:
+  push:
+    branches: [feat/pollar-wallet-bundle]
+    paths:
+      - prototype/wallet.js
+      - .github/workflows/wallet-bundle.yml
+
+permissions:
+  contents: write
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - run: npm install @pollar/core@0.12.0 --save-exact
+      - run: npm install esbuild@0.28.2 --no-save
+      - run: ./node_modules/.bin/esbuild prototype/wallet.js --bundle --format=esm --platform=browser --target=es2022 --outfile=prototype/wallet.bundle.js
+      - name: Commit browser bundle and lockfile
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json prototype/wallet.bundle.js
+          git commit -m "Bundle Pollar SDK for GitHub Pages"
+          git push
