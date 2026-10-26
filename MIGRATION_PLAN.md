@@ -1,10 +1,10 @@
 # Migration plan — prototype to ENZA marketplace
 
-Status: planning only. No production system, domain, deployment or existing file is changed by this plan. Canonical source is `infoenzastore-cmd/enza3.mvmnt1`; `enza.in` remains the live store until its owners provide access and approve a cutover.
+Status: planning only. No production system, domain, deployment or existing source file is changed by this plan. Canonical source is `infoenzastore-cmd/enza3.mvmnt1`. ENZA Movement is the new unified business; no dependency on `enza.in` is planned.
 
 ## Migration rule
 
-Build the new marketplace **alongside** the Vite concept site. Keep its static preview and local Testnet demo available while a separate application proves the buyer journey. Add only new files/directories in the first implementation slice. Avoid renaming or deleting the current entry pages until a reviewed replacement and redirect map exist. Never migrate live customer/order data from screenshots or assumptions.
+Build the new marketplace **alongside** the Vite concept site. Keep its static preview and local Testnet demo available while a separate application proves the buyer journey. Add only new files/directories in the first implementation slice. Avoid renaming or deleting the current entry pages until a reviewed replacement is ready. No old-store customer or order data is assumed or required.
 
 ## What to carry forward
 
@@ -15,30 +15,30 @@ Build the new marketplace **alongside** the Vite concept site. Keep its static p
 | `payment.js`, `test/payment.test.js` | Extract decimal-safe amount and exact Horizon reconciliation behavior into a typed payment module, then strengthen with persistent idempotency and network/source checks. Keep tests as regression inputs. |
 | `server.js`, `demo-wallet.js` | Retain for isolated local demonstration only. Replace JSON-file orders and in-memory demo wallet in the new commerce runtime. |
 | `blueprint.html`, `README.md`, `thesis.md`, `docs/*` | Preserve historical strategy and accurate status labels. Update links and status only during a later reviewed implementation. |
-| `enza.in` | External live commerce property. Its framework, product source, API, auth, cart, Cashfree contract, fulfillment and SEO behavior are **unverified** from this repository. Audit before proposing integration or migration. |
+| Former `enza.in` | Outside this build. Do not link checkout to it or treat its products, accounts, payment methods or data as ENZA Movement dependencies. |
 
 ## Stages and gates
 
-1. **Foundation and decisions (this part).** Approve audience, first sales region/currency, scope of the first checkout, ownership of live product data, wallet UX and hosting. Inventory existing site routes and get legitimate read access if a migration is desired. Gate: owners accept architecture, data source and no-risk boundary.
+1. **Foundation and decisions (this part).** Shopper-first homepage, new-marketplace checkout and USD/USDC direction are approved. Confirm whether today's prototype should submit real Testnet payments, the first product mix, approved imagery, wallet UX and hosting. Gate: owners accept clear prototype/production boundaries.
 2. **Design system and public shell.** Add a separate Next.js/TypeScript application with tokenized cream/earth/olive design, responsive navigation, editorial homepage, category/product/story templates and clear Shop EnZa and Experience Antidote labels. Keep the cultural offer conceptual unless there is real inventory. Gate: accessibility, mobile layouts, SEO metadata and visual review against the supplied references.
 3. **Discovery with 20 placeholders.** Seed 20 explicitly non-purchasable sample records with categories, images, maker/story fields and safe copy. Add search/filter, preference quiz or guided discovery and product detail pages. Capture preferences only by consent. Gate: all 20 records render, filtering works, no placeholder claims stock or verified health/sourcing benefits.
-4. **Commerce and fiat baseline.** Connect an approved inventory/order source (reuse the live store if its APIs support the required flow; otherwise persist orders in a selected database). Implement cart, server-priced checkout, shipping/tax/returns and a selected fiat gateway. Gate: real product availability, end-to-end paid order, refund/cancellation policy and idempotent fulfillment are tested in the provider's sandbox before selling.
+4. **Commerce and payments.** Create the new marketplace's persistent catalogue/orders in a selected database once real selling begins. Implement cart, server-priced USD checkout, shipping/tax/returns and a selected fiat gateway if fiat is in launch scope. Gate: real product availability, end-to-end paid order, refund/cancellation policy and idempotent fulfillment are tested before selling.
 5. **Optional Stellar Testnet USDC.** Add customer-controlled wallet path, merchant receiving account, trustline guidance, exact verified issuer, pending orders and server verification. Keep Testnet explicit. Gate: wrong network/issuer/destination/amount/memo, failed/pending tx, duplicate hash and repeated callbacks cannot mark an order paid; successful payment is confirmed from network data before fulfillment.
 6. **Vendor, content and growth.** Add vendor application/qualification, admin review, editorial CMS if needed, consent-based CRM and analytics. Add dedicated search only if the catalogue and measured search quality warrant it. Gate: role permissions, data retention and event tracking are verified. Vendor payouts require a separate approval and audit design.
 7. **Production rollout (separate authorization).** Choose host and region, provision DB/secrets/backups, staging domain and monitoring; run content, data, legal and security checks; plan URL redirects and canonical tags. Pilot with a limited catalogue. Move or redirect production traffic only after explicit owner approval and rollback rehearsal. No deployment is authorized by this document.
 
-## Data and SEO migration if the live store is included
+## Content and SEO launch
 
-Obtain the real product schema, stock source, image rights, customer/account export rights, order status contract, shipping/tax rules, gateway integration, current URL map and analytics baseline. Map source IDs to immutable new IDs; keep price/stock authority in one system. Dry-run imports in staging, compare record counts and sample orders, then choose either API-backed coexistence or a scheduled migration. Preserve canonical product URLs where possible; prepare 301 redirects for changed paths, sitemap and structured data. Do not copy passwords or payment tokens. Existing orders remain accessible through the old system until an approved retention and support plan exists.
+Create new ENZA Movement product and experience records from approved source information. Confirm image rights, prices, stock, fulfillment, shipping/tax rules and claims before enabling purchase. Give pages stable slugs, canonical URLs, sitemap, structured data and accessible metadata. If the business later wants redirects from the old domain, plan and approve them separately; they are not part of today's prototype. Never import passwords or payment tokens.
 
 ## Rollback and ownership
 
-The static site and live store remain independent until cutover. During implementation, rollback is simply routing users back to the existing destination and disabling new checkout in staging. After a cutover, rollback requires a tested order and inventory reconciliation process; no dual writes without a documented owner of truth. ENZA owns catalogue claims, pricing, legal terms, fulfillment rules and vendor approval. Engineering owns code, access boundaries, migrations, monitoring and verification.
+The current static prototype stays available while the new application is built. Rollback is returning to that preview and disabling new checkout in staging. Before any live launch, establish a tested order and inventory reconciliation process. ENZA owns catalogue claims, pricing, legal terms, fulfillment rules and vendor approval. Engineering owns code, access boundaries, migrations, monitoring and verification.
 
 ## Decisions needed before implementation
 
-- Is the first working checkout native to the new marketplace, or a handoff to `enza.in`? Who can grant read access to its product/order APIs or source?
-- Which buyer region, display/settlement currency, shipping area and tax rules come first?
+- Should today's prototype stop at cart/payment review, or submit real Stellar Testnet USDC? The new marketplace owns checkout either way.
+- Which buyer region and shipping area come first? USD is the display currency; USDC is the requested digital payment denomination.
 - Which 20 product categories and brand assets are approved, and should placeholder cards allow only discovery or a waitlist until real stock exists?
 - Which fiat gateway and customer-controlled Stellar wallet UX (extension optional, passkey/embedded provider, recovery and custody model) are acceptable?
 - Which hosting, database region, CMS/CRM, privacy/consent and analytics choices meet the business requirements?
