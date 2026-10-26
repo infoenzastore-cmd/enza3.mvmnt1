@@ -1,20 +1,21 @@
 # ENZA Movement
 
-ENZA Movement is a human-facing concept site for two connected experiences: **Shop EnZa**, the existing conscious-commerce business at [enza.in](https://enza.in/), and **Experience Antidote**, the proposed music and cultural programme. This repository also contains a separate, clearly labelled Stellar **Testnet** USDC checkout demo for one sample product and one sample ENZA-hosted experience.
+ENZA Movement is a new unified, human-facing marketplace in development for holistic wellbeing products and experiences. The [branded shopper prototype](prototype/) has 14 owner-referenced product concepts across Food, Fashion, Lifestyle and Home, plus discovery, a local cart and past experience references. The former `enza.in` product pages are content references, not the destination for this new checkout.
 
-The live EnZa store, its real products, cart, accounts, Cashfree checkout and other payment methods are **not** implemented or changed here. The repository does not have access to the store's source or private APIs. The Antidote event and ticket are samples; Axess.Zone is not connected. See [the audit and implementation plan](docs/IMPLEMENTATION_PLAN.md) before extending either integration.
+The public prototype is a static GitHub Pages preview. Its generated imagery, proposed packaging and USD prices are illustrative. It does not create paid orders. The repository also contains a separate local Stellar **Testnet** USDC demo for one sample product and one sample experience; Axess.Zone is not connected. See [the foundation plan](IMPLEMENTATION_PLAN.md) and [Stellar integration notes](docs/STELLAR_INTEGRATION.md) before extending payment.
 
 Coding agents must read [AGENTS.md](AGENTS.md) and [thesis.md](thesis.md). This isolated demo uses a disposable server-held Testnet wallet so visitors can authorize sample payments without installing a wallet extension. A production customer checkout still needs a customer-controlled signing flow.
 
 ## Pages
 
-- `index.html` — ENZA Movement site, with paths to the live EnZa shop, Antidote concept, and Testnet demo.
+- `prototype/index.html` — current ENZA Movement shopper prototype and brand direction.
+- `index.html` — earlier concept site, retained while the new application is built.
 - `demo.html` — sample product and experience checkout using the same local payment API.
 - `blueprint.html` — preserved strategy presentation from this repository's earlier homepage.
 
 ## GitHub Pages preview
 
-The public site at [infoenzastore-cmd.github.io/enza3.mvmnt1](https://infoenzastore-cmd.github.io/enza3.mvmnt1/) serves the source HTML, CSS and JavaScript from `main` when GitHub Pages is enabled. Its checkout is an explicitly labeled **simulation**: it lets visitors select the sample product or experience and see a preview ticket, but sends no payment and claims no on-chain confirmation. GitHub Pages cannot run this repository's Node API. Use the local Testnet steps below for real network settlement.
+The public [ENZA prototype](https://infoenzastore-cmd.github.io/enza3.mvmnt1/prototype/) serves source HTML, CSS, JavaScript and original concept imagery from `main`. Search, category filters, mood edits and cart review work in the browser. Checkout is deliberately unavailable there: GitHub Pages cannot run the Node verification API or persist orders. The older root sample checkout is explicitly simulated. Use the local Testnet steps below for the existing sample network flow.
 
 ## Local Testnet demo
 
