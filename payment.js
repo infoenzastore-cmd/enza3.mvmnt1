@@ -40,6 +40,19 @@ export async function buildPayment(order, source, config, horizon=new Horizon.Se
     .addMemo(Memo.text(order.memo))
     .setTimeout(Math.max(1,Math.floor((Date.parse(order.expiresAt)-Date.now())/1000))).build().toXDR();
 }
+export async function buildTrustline(address,config,horizon=new Horizon.Server(HORIZON_URL)) {
+  if (!StrKey.isValidEd25519PublicKey(address)) throw new Error('Invalid wallet address');
+  const account=await horizon.loadAccount(address);
+  if (account.balances.some(b=>b.asset_code==='USDC'&&b.asset_issuer===config.issuer)) return null;
+  if (!account.balances.some(b=>b.asset_type==='native'&&amountToUnits(b.balance)>=15000000n)) throw new Error('Wallet needs enough Testnet XLM for the trustline reserve and fee');
+  return new TransactionBuilder(account,{fee:BASE_FEE,networkPassphrase:NETWORK})
+    .addOperation(Operation.changeTrust({asset:new Asset('USDC',config.issuer)}))
+    .setTimeout(300).build().toXDR();
+}
+export function validateSignedTrustline(tx,address,config,preparedHash) {
+  if (tx.source!==address||!tx.signatures?.length||tx.hash().toString('hex')!==preparedHash) throw new Error('Trustline intent changed');
+  if (tx.operations.length!==1||tx.operations[0].type!=='changeTrust'||tx.operations[0].line?.code!=='USDC'||tx.operations[0].line?.issuer!==config.issuer) throw new Error('Trustline details changed');
+}
 export function validateSignedPayment(tx, order, config) {
   if (order.payer && tx.source!==order.payer) throw new Error('Payer changed');
   if (order.preparedHash && tx.hash().toString('hex')!==order.preparedHash) throw new Error('Payment intent changed');
