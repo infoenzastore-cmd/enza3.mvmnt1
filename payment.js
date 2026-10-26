@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { Asset, Horizon, Networks, Operation, TransactionBuilder, BASE_FEE, StrKey } from '@stellar/stellar-sdk';
+import { PRODUCTS } from './prototype/catalog.js';
 
 export const HORIZON_URL = 'https://horizon-testnet.stellar.org';
 export const NETWORK = Networks.TESTNET;
@@ -21,6 +22,22 @@ export function configFromEnv(env=process.env) {
 export function createOrder(itemId) {
   const item=CATALOG[itemId]; if (!item) throw new Error('Unknown sample item');
   return {id:randomUUID(),itemId,kind:item.kind,amount:unitsToAmount(item.units),status:'pending',createdAt:new Date().toISOString(),expiresAt:new Date(Date.now()+15*60_000).toISOString(),memo:randomUUID().replaceAll('-','').slice(0,28),hash:null,ticket:null};
+}
+export function createCartOrder(lines, customerAddress) {
+  if (!StrKey.isValidEd25519PublicKey(customerAddress)) throw new Error('Connect a Stellar wallet first');
+  if (!Array.isArray(lines) || lines.length < 1 || lines.length > PRODUCTS.length) throw new Error('Invalid bag');
+  const seen = new Set();
+  let total = 0;
+  const snapshot = lines.map(line => {
+    if (!line || !Number.isInteger(line.id) || !Number.isInteger(line.quantity) || line.quantity < 1 || line.quantity > 99 || seen.has(line.id)) throw new Error('Invalid bag item');
+    seen.add(line.id);
+    const product = PRODUCTS.find(p => p.id === line.id);
+    if (!product) throw new Error('Unknown product');
+    total += product.price * line.quantity;
+    return {id:product.id,name:product.name,quantity:line.quantity,unitPrice:product.price};
+  });
+  if (total > 5000) throw new Error('Testnet bag limit is 5,000 USDC');
+  return {id:randomUUID(),kind:'cart',items:snapshot,customerAddress,amount:unitsToAmount(BigInt(total)*10000000n),status:'pending',createdAt:new Date().toISOString(),expiresAt:new Date(Date.now()+15*60_000).toISOString(),memo:randomUUID().replaceAll('-','').slice(0,28),hash:null,ticket:null};
 }
 export async function buildPayment(order, source, config, horizon=new Horizon.Server(HORIZON_URL)) {
   if (!StrKey.isValidEd25519PublicKey(source)) throw new Error('Invalid wallet address');
@@ -51,7 +68,7 @@ export function verifyPayment(order, hash, transaction, operations, config, used
   if (transaction.network_passphrase && transaction.network_passphrase!==NETWORK) throw new Error('Wrong network');
   if (transaction.memo_type!=='text' || transaction.memo!==order.memo) throw new Error('Wrong order memo');
   if (Date.parse(transaction.created_at)>Date.parse(order.expiresAt)) throw new Error('Payment expired');
-  const matches=operations.filter(op=>op.type==='payment' && op.to===config.merchant && op.asset_code==='USDC' && op.asset_issuer===config.issuer && amountToUnits(op.amount)===amountToUnits(order.amount));
+  const matches=operations.filter(op=>op.type==='payment' && op.to===config.merchant && op.asset_code==='USDC' && op.asset_issuer===config.issuer && amountToUnits(op.amount)===amountToUnits(order.amount) && (!order.customerAddress || op.from===order.customerAddress));
   if (matches.length!==1) throw new Error('Incorrect destination, asset, or amount');
   return {...order,status:'paid',hash,paidAt:transaction.created_at,ticket:order.kind==='event' ? `DEMO-${order.id.slice(0,8)}`:null};
 }
