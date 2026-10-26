@@ -28,11 +28,17 @@ const seed = [
   ['The everyday intention', 'Mindful living', 25, 'A thoughtful cue to begin again.', 'Energized']
 ];
 
-const categoryImage = { Ritual: images.ritual, Body: images.body, Home: images.home, 'Mindful living': images.mindful };
-const categoryCounts = { Ritual: 0, Body: 0, Home: 0, 'Mindful living': 0 };
+const imageOrder = [
+  'ritual', 'body', 'home', 'mindful', 'ritual',
+  'body', 'ritual', 'body', 'ritual', 'body',
+  'home', 'mindful', 'home', 'ritual', 'home',
+  'mindful', 'ritual', 'mindful', 'body', 'mindful'
+];
+const imageCounts = { ritual: 0, body: 0, home: 0, mindful: 0 };
 const products = seed.map(([name, category, price, description, mood], index) => {
-  const position = ['0%', '25%', '50%', '75%', '100%'][categoryCounts[category]++];
-  return { id: index + 1, name, category, price, description, mood, image: categoryImage[category], position };
+  const imageKey = imageOrder[index];
+  const position = ['0%', '25%', '50%', '75%', '100%', '50%', '100%'][imageCounts[imageKey]++];
+  return { id: index + 1, name, category, price, description, mood, image: images[imageKey], position };
 });
 const byId = new Map(products.map(product => [product.id, product]));
 const money = value => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
