@@ -1,6 +1,6 @@
 # ENZA Movement architecture — foundation proposal
 
-Status: **proposed**, 26 October 2026. This document audits the `enza3.mvmnt1` prototype and describes a path to a wellness-first marketplace. It does not describe a deployed commerce service. The live store at `enza.in` is outside this repository and has not been inspected or changed.
+Status: **proposed**, 26 October 2026. This document audits the `enza3.mvmnt1` prototype and describes a new, unified ENZA Movement marketplace for holistic wellbeing products and experiences. It does not describe a deployed commerce service. The former `enza.in` business is being retired as a separate destination; no integration or migration from it is planned.
 
 ## Current system
 
@@ -19,7 +19,7 @@ Sources: [`README.md`](README.md), [`package.json`](package.json), [`server.js`]
 
 **Propose Next.js App Router + TypeScript + Tailwind CSS for the new marketplace application**, introduced alongside the existing Vite prototype. Product and story pages need indexable server-rendered content; cart, account, orders and payment callbacks need server execution. Next.js has [server/client component boundaries](https://nextjs.org/docs/app/getting-started/server-and-client-components) and [route handlers](https://nextjs.org/docs/app/getting-started/route-handlers) for this combination. Tailwind has a maintained [Next.js integration](https://tailwindcss.com/docs/installation/framework-guides/nextjs). TypeScript helps enforce money, order and provider boundaries. Keep a small token layer in CSS so the existing visual language is not lost to utility classes. A UI library such as shadcn/ui is optional, to be evaluated after the first accessible components exist.
 
-Keep GitHub Pages as a **static concept preview** during migration. A working marketplace needs a Node-capable or compatible managed host plus persistent data; a static export cannot run payment verification, order writes or authenticated administration. Vercel is one candidate, not a selected provider. Host, region, domain and deployment credentials remain open decisions. Do not redirect `enza.in` or retire its checkout without an audited integration and rollout plan.
+Keep GitHub Pages as a **static concept preview** during development. A working marketplace needs a Node-capable or compatible managed host plus persistent data; a static export cannot run payment verification, order writes or authenticated administration. Vercel is one candidate, not a selected provider. Host, region and domain remain open decisions. The new site owns its catalogue, cart, orders and checkout.
 
 Proposed modular monolith, with replaceable adapters:
 
@@ -33,12 +33,12 @@ Next.js web app (public shop, stories, buyer account, vendor application, admin)
   └─ analytics event interface ─── provider TBD
 ```
 
-Server components may read the catalogue directly; client components handle filters, cart interactions and wallet UI. Server routes own writes, webhook validation and on-chain verification. Keep domain logic outside route files to allow tests and later provider changes. Suggested modules are `catalogue`, `discovery`, `cart`, `orders`, `payments`, `content`, `leads`, `vendors`, `analytics` and `auth`. A separate microservice or Medusa installation is premature for 20 placeholders. Reconsider an existing commerce backend **after** obtaining the live store's API and data model; preserve it if it already meets order, stock and fulfillment needs.
+Server components may read the catalogue directly; client components handle filters, cart interactions and wallet UI. Server routes own writes, webhook validation and on-chain verification. Keep domain logic outside route files to allow tests and later provider changes. Suggested modules are `catalogue`, `discovery`, `cart`, `orders`, `payments`, `content`, `leads`, `vendors`, `analytics` and `auth`. A separate microservice or Medusa installation is premature for 20 placeholders; the new marketplace can begin as a modular monolith.
 
 ## Data and integration boundaries
 
 - **Catalogue:** `Product`, `Variant`, `Category`, `Maker`, `Media`, `Price` and availability. Seed 20 clearly labelled placeholder products across wellness, home, personal care and gifting. Placeholder copy, images and prices must not imply real stock, verified sourcing or medical benefit. Replace with approved inventory before paid sales.
-- **Commerce:** `Cart`/`CartItem` lead to an immutable priced `Order` with line items, currency, tax/shipping decision and status history. Decimal-safe minor units; never trust browser totals. Reservation, fulfillment and returns depend on the real inventory source.
+- **Commerce:** `Cart`/`CartItem` lead to an immutable priced `Order` with line items, USD prices, tax/shipping decision and status history. Decimal-safe USD cents for display/fiat and exact 7-decimal asset units for Stellar USDC; never trust browser totals. Reservation, fulfillment and returns depend on approved real inventory.
 - **Payments:** `PaymentIntent`/`Attempt` record provider, network, expected amount, asset, merchant, unique order reference, status, transaction hash and audit timestamps. A unique constraint on transaction hash and idempotent state transition prevents duplicate fulfillment. Fiat gateway and its webhook remain to be chosen; Stellar is optional alongside fiat.
 - **Content and discovery:** Editorial stories and maker profiles drive category and product exploration. Start with curated tags, goals and consent-based preference inputs; no opaque health profiling. Store explicit answers only with consent and allow removal. Use database text search and filters for a 20-product catalogue; add Meilisearch or Algolia only after relevance/scale measurements justify it.
 - **CRM and analytics:** Vendor applications, waitlist/newsletter consent and service requests flow through validated server endpoints with spam controls. Define events such as `product_viewed`, `filter_used`, `add_to_cart`, `checkout_started`, `payment_method_selected`, `order_confirmed`, `vendor_application_submitted`; do not send addresses, health answers or payment identifiers into analytics. Pick CRM and analytics vendors after consent, region and retention decisions. GA4/PostHog are candidates, not integrations.
@@ -55,7 +55,7 @@ Visual direction from the supplied images: wellness-first editorial photography;
 
 | Persona | Journey | First useful conversion |
 | --- | --- | --- |
-| Buyer | Discover → explore curated products or preferences → inspect maker and product evidence → add to cart → choose fiat or optional Stellar → receive confirmed order → return | Product discovery, cart and completed order once inventory/payments are real |
+| Buyer | Feel welcomed → explore curated products or experiences → learn about makers and wellbeing choices → add to cart → review USD total and choose payment method → receive confirmed order → return | Shopper-first discovery that can grow into conscious consumption; paid order only with real inventory and verified payment |
 | Conscious vendor | Discover ENZA → understand criteria and terms → submit application → qualify → onboard catalogue and payout details | Validated application with explicit consent; no automatic approval |
 | Administrator | Review content and vendor applications → approve products/prices → monitor orders and payment exceptions → fulfill/refund → reconcile settlement and analytics | Safe review and order state management with audit trail |
 | Community member | Read story → opt into community/newsletter → engage → discover relevant products | Consent-based subscription; no fabricated community or ticket integration |
