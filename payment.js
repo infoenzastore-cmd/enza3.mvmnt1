@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { Asset, Horizon, Networks, Operation, TransactionBuilder, BASE_FEE, StrKey } from '@stellar/stellar-sdk';
+import { Asset, Horizon, Memo, Networks, Operation, TransactionBuilder, BASE_FEE, StrKey } from '@stellar/stellar-sdk';
 
 export const HORIZON_URL = 'https://horizon-testnet.stellar.org';
 export const NETWORK = Networks.TESTNET;
@@ -16,12 +16,16 @@ export function amountToUnits(value) {
 export function configFromEnv(env=process.env) {
   const issuer=env.STELLAR_USDC_TESTNET_ISSUER, merchant=env.STELLAR_MERCHANT_ADDRESS;
   if (!issuer || !merchant || !StrKey.isValidEd25519PublicKey(issuer) || !StrKey.isValidEd25519PublicKey(merchant)) throw new Error('Configure valid Testnet USDC issuer and merchant public address');
-  return {issuer,merchant};
+  const vendor=env.STELLAR_VENDOR_ADDRESS;
+  if (vendor && (!StrKey.isValidEd25519PublicKey(vendor) || vendor===merchant)) throw new Error('Configure a separate vendor public address');
+  return {issuer,merchant,vendor:vendor||null};
 }
 export function createOrder(itemId) {
   const item=CATALOG[itemId]; if (!item) throw new Error('Unknown sample item');
-  return {id:randomUUID(),itemId,kind:item.kind,amount:unitsToAmount(item.units),status:'pending',createdAt:new Date().toISOString(),expiresAt:new Date(Date.now()+15*60_000).toISOString(),memo:randomUUID().replaceAll('-','').slice(0,28),hash:null,ticket:null};
+  return {id:randomUUID(),itemId,kind:item.kind,amount:unitsToAmount(item.units),status:'pending',createdAt:new Date().toISOString(),expiresAt:new Date(Date.now()+15*60_000).toISOString(),memo:randomUUID().replaceAll('-','').slice(0,28),payer:null,preparedHash:null,hash:null,ticket:null,payout:null};
 }
+export const payoutAmount = amount => unitsToAmount(amountToUnits(amount)*90n/100n);
+export const payoutMemo = order => `ENZA-${order.id.replaceAll('-','').slice(0,23)}`;
 export async function buildPayment(order, source, config, horizon=new Horizon.Server(HORIZON_URL)) {
   if (!StrKey.isValidEd25519PublicKey(source)) throw new Error('Invalid wallet address');
   if (Date.now() >= Date.parse(order.expiresAt)) throw new Error('Order expired');
@@ -33,14 +37,49 @@ export async function buildPayment(order, source, config, horizon=new Horizon.Se
   if (!destination.balances.some(b=>b.asset_code==='USDC' && b.asset_issuer===config.issuer)) throw new Error('Merchant needs a USDC trustline');
   return new TransactionBuilder(account,{fee:BASE_FEE,networkPassphrase:NETWORK})
     .addOperation(Operation.payment({destination:config.merchant,asset:new Asset('USDC',config.issuer),amount:order.amount}))
-    .addMemo((await import('@stellar/stellar-sdk')).Memo.text(order.memo))
+    .addMemo(Memo.text(order.memo))
     .setTimeout(Math.max(1,Math.floor((Date.parse(order.expiresAt)-Date.now())/1000))).build().toXDR();
 }
 export function validateSignedPayment(tx, order, config) {
+  if (order.payer && tx.source!==order.payer) throw new Error('Payer changed');
+  if (order.preparedHash && tx.hash().toString('hex')!==order.preparedHash) throw new Error('Payment intent changed');
+  if (!tx.signatures?.length) throw new Error('Wallet signature missing');
   if (tx.memo?.type !== 'text' || Buffer.from(tx.memo.value).toString('utf8') !== order.memo || tx.operations.length !== 1) throw new Error('Transaction does not match order');
   const op=tx.operations[0];
   if (op.type !== 'payment' || op.destination !== config.merchant || op.asset.code !== 'USDC' || op.asset.issuer !== config.issuer || amountToUnits(op.amount) !== amountToUnits(order.amount)) throw new Error('Payment details changed');
   if (!StrKey.isValidEd25519PublicKey(tx.source)) throw new Error('Invalid source');
+}
+export async function buildPayout(order,config,horizon=new Horizon.Server(HORIZON_URL)) {
+  if (order.status!=='paid') throw new Error('Payment must be confirmed first');
+  if (!config.vendor) throw new Error('Vendor payout address is not configured');
+  if (order.payout?.hash) throw new Error('Payout already submitted');
+  const account=await horizon.loadAccount(config.merchant);
+  const destination=await horizon.loadAccount(config.vendor);
+  if (!destination.balances.some(b=>b.asset_code==='USDC'&&b.asset_issuer===config.issuer)) throw new Error('Vendor needs a Testnet USDC trustline');
+  const amount=payoutAmount(order.amount);
+  if (!account.balances.some(b=>b.asset_code==='USDC'&&b.asset_issuer===config.issuer&&amountToUnits(b.balance)>=amountToUnits(amount))) throw new Error('Merchant has insufficient Testnet USDC');
+  return new TransactionBuilder(account,{fee:BASE_FEE,networkPassphrase:NETWORK})
+    .addOperation(Operation.payment({destination:config.vendor,asset:new Asset('USDC',config.issuer),amount}))
+    .addMemo(Memo.text(payoutMemo(order))).setTimeout(300).build().toXDR();
+}
+export function validateSignedPayout(tx,order,config) {
+  if (order.status!=='paid'||!config.vendor) throw new Error('Payout is unavailable');
+  if (!order.payout?.preparedHash||tx.hash().toString('hex')!==order.payout.preparedHash) throw new Error('Payout intent changed');
+  if (tx.source!==config.merchant||!tx.signatures?.length) throw new Error('Merchant signature missing');
+  if (tx.memo?.type!=='text'||Buffer.from(tx.memo.value).toString('utf8')!==payoutMemo(order)||tx.operations.length!==1) throw new Error('Payout memo changed');
+  const op=tx.operations[0];
+  if (op.type!=='payment'||op.destination!==config.vendor||op.asset.code!=='USDC'||op.asset.issuer!==config.issuer||amountToUnits(op.amount)!==amountToUnits(payoutAmount(order.amount))) throw new Error('Payout details changed');
+}
+export function verifyPayout(order,hash,transaction,operations,config,usedHashes) {
+  if (order.payout?.status==='paid'&&order.payout.hash===hash) return order;
+  if (order.status!=='paid'||order.payout?.hash!==hash||usedHashes.has(hash)) throw new Error('Payout is not pending');
+  if (!transaction||transaction.hash?.toLowerCase()!==hash.toLowerCase()||transaction.successful!==true||transaction.source_account!==config.merchant) throw new Error('Payout transaction not successful');
+  if (transaction.network_passphrase&&transaction.network_passphrase!==NETWORK) throw new Error('Wrong payout network');
+  if (transaction.memo_type!=='text'||transaction.memo!==payoutMemo(order)) throw new Error('Wrong payout memo');
+  if (!Number.isFinite(Date.parse(transaction.created_at))||Date.parse(transaction.created_at)<Date.parse(order.paidAt)) throw new Error('Payout outside paid order window');
+  const matches=operations.filter(op=>op.type==='payment'&&op.from===config.merchant&&op.to===config.vendor&&op.asset_code==='USDC'&&op.asset_issuer===config.issuer&&amountToUnits(op.amount)===amountToUnits(payoutAmount(order.amount)));
+  if (matches.length!==1) throw new Error('Incorrect payout destination, asset, or amount');
+  return {...order,payout:{...order.payout,status:'paid',paidAt:transaction.created_at}};
 }
 export function verifyPayment(order, hash, transaction, operations, config, usedHashes) {
   if (!/^[a-f0-9]{64}$/i.test(hash)) throw new Error('Invalid transaction hash');
@@ -48,9 +87,10 @@ export function verifyPayment(order, hash, transaction, operations, config, used
   if (order.status!=='pending') throw new Error('Order is not pending');
   if (usedHashes.has(hash)) throw new Error('Transaction already used');
   if (!transaction || transaction.hash?.toLowerCase()!==hash.toLowerCase() || transaction.successful!==true) throw new Error('Transaction not successful');
+  if (order.payer && transaction.source_account!==order.payer) throw new Error('Wrong payer');
   if (transaction.network_passphrase && transaction.network_passphrase!==NETWORK) throw new Error('Wrong network');
   if (transaction.memo_type!=='text' || transaction.memo!==order.memo) throw new Error('Wrong order memo');
-  if (Date.parse(transaction.created_at)>Date.parse(order.expiresAt)) throw new Error('Payment expired');
+  if (!Number.isFinite(Date.parse(transaction.created_at))||Date.parse(transaction.created_at)>Date.parse(order.expiresAt)||Date.parse(transaction.created_at)<Date.parse(order.createdAt)) throw new Error('Payment outside order window');
   const matches=operations.filter(op=>op.type==='payment' && op.to===config.merchant && op.asset_code==='USDC' && op.asset_issuer===config.issuer && amountToUnits(op.amount)===amountToUnits(order.amount));
   if (matches.length!==1) throw new Error('Incorrect destination, asset, or amount');
   return {...order,status:'paid',hash,paidAt:transaction.created_at,ticket:order.kind==='event' ? `DEMO-${order.id.slice(0,8)}`:null};

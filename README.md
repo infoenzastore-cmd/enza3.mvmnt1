@@ -1,30 +1,23 @@
 # ENZA Movement
 
-ENZA Movement is a new unified, human-facing marketplace in development for holistic wellbeing products and experiences. The [branded shopper prototype](prototype/) has 14 owner-referenced product concepts across Food, Fashion, Lifestyle and Home, plus discovery, a local cart and past experience references. The former `enza.in` product pages are content references, not the destination for this new checkout.
+The [ENZA shopper prototype](https://infoenzastore-cmd.github.io/enza3.mvmnt1/prototype/) is a static preview of the foundation and design layer. Product images and USD prices are illustrative. The separate [Testnet checkout page](demo.html) contains a sample product and experience for wallet integration work.
 
-The public prototype is a static GitHub Pages preview. Its generated imagery, proposed packaging and USD prices are illustrative. It does not create paid orders. The repository also contains a separate local Stellar **Testnet** USDC demo for one sample product and one sample experience; Axess.Zone is not connected. See [the foundation plan](IMPLEMENTATION_PLAN.md) and [Stellar integration notes](docs/STELLAR_INTEGRATION.md) before extending payment.
+## Testnet purchase and payout
 
-Coding agents must read [AGENTS.md](AGENTS.md) and [thesis.md](thesis.md). This isolated demo uses a disposable server-held Testnet wallet so visitors can authorize sample payments without installing a wallet extension. A production customer checkout still needs a customer-controlled signing flow.
+The checkout code uses a customer-controlled Freighter wallet. It creates a 15-minute order, builds one exact Circle test USDC payment, asks Freighter to sign it, submits it to Stellar Testnet, and has the server independently verify the successful ledger result before marking the order paid. A 90% vendor payout can then be built and signed by the **merchant** Freighter wallet. The remaining 10% stays in the merchant wallet. No buyer can authorize payout.
 
-## Pages
+All transactions use **Testnet assets with no monetary value**. Sample orders do not reserve stock, ship products or book events. Pollar sign-in is available on the shopper prototype, but this sample checkout currently uses Freighter for transaction signing. Vendor payout is a demo allocation, not a production settlement policy.
 
-- `prototype/index.html` — current ENZA Movement shopper prototype and brand direction.
-- `index.html` — earlier concept site, retained while the new application is built.
-- `demo.html` — sample product and experience checkout using the same local payment API.
-- `blueprint.html` — preserved strategy presentation from this repository's earlier homepage.
+GitHub Pages cannot run the API or persist orders. The public checkout page remains a preview until a persistent Node host is configured and its HTTPS API URL is placed in the `enza-api-base` meta tag in `demo.html`. Do not claim the public purchase works before an end-to-end Testnet transaction has been checked.
 
-## GitHub Pages preview
+## Run locally
 
-The public [ENZA prototype](https://infoenzastore-cmd.github.io/enza3.mvmnt1/prototype/) serves source HTML, CSS, JavaScript and original concept imagery from `main`. Search, category filters, mood edits and cart review work in the browser. Checkout is deliberately unavailable there: GitHub Pages cannot run the Node verification API or persist orders. The older root sample checkout is explicitly simulated. Use the local Testnet steps below for the existing sample network flow.
+1. Use Node.js 22 or newer. Run `npm ci`, `npm test`, and `npm run build`.
+2. Copy `.env.example` to ignored `.env`. Set public **Testnet** merchant and vendor G-addresses. The example issuer is Circle test USDC as shown in [Stellar's asset documentation](https://developers.stellar.org/docs/platforms/stellar-disbursement-platform/api-reference/get-all-assets); verify it again before a demo. Both destinations need that exact trustline. The merchant account needs test XLM and holds the received test USDC.
+3. Run `set -a; source .env; set +a; npm start` and open `http://127.0.0.1:3000/demo.html`.
+4. Connect Freighter on Testnet. Give the customer wallet test XLM and [Circle faucet](https://faucet.circle.com/) test USDC, then create a sample order. Review the network, issuer, destination, amount and memo in the page and in Freighter before signing.
+5. After payment confirmation, switch Freighter to the configured merchant account and explicitly sign the vendor payout. Open both Testnet explorer links.
 
-## Local Testnet demo
+For a public demo, deploy the API on a Node host with durable storage, set `PUBLIC_ORIGIN=https://infoenzastore-cmd.github.io`, `HOST=0.0.0.0`, and the same Testnet addresses. Serve it behind HTTPS. Its `.data/orders.json` must persist across restarts; the included JSON storage is appropriate only for one process and a small demonstration. Set the public API URL in `demo.html`. Keep signing keys out of the server, repository and browser configuration.
 
-Use Node.js 22 or newer. The demo is local only; do not expose the API publicly.
-
-1. Run `npm ci`, `npm test`, and `npm run build`.
-2. Verify the current Stellar Testnet USDC issuer against an [official Circle address list](https://developers.circle.com/stablecoins/usdc-contract-addresses). Copy `.env.example` to ignored `.env`, then set `STELLAR_USDC_TESTNET_ISSUER` and `STELLAR_MERCHANT_ADDRESS` to public Testnet addresses. The merchant must have an authorized trustline to that exact USDC asset. Never put a secret key in `.env`.
-3. In one terminal, run `set -a; source .env; set +a; npm start`. This command builds the pages and starts the API and website together at `http://127.0.0.1:3000/`. `npm run dev` is an alias for the same full demo; port 5173 is not used.
-4. Open `http://127.0.0.1:3000/` for the site or `http://127.0.0.1:3000/demo.html` for the sample checkout. Click **Prepare demo wallet**. The server creates a disposable account in memory, requests Testnet XLM from Friendbot, and adds the configured USDC trustline. Copy its **public** address into the [Circle faucet](https://faucet.circle.com/) with Stellar Testnet selected, then refresh the balance. One current 20 USDC faucet claim covers the two samples, priced at 5 and 10 test USDC.
-5. Select a sample, review the network, issuer, destination, payer, amount and memo, then click **Authorize demo Testnet payment**. The local server signs with its demo wallet and checks the resulting transaction on Horizon before marking the order paid or issuing the demo ticket. No browser extension or visitor secret key is needed.
-
-The server-held signing key exists only in process memory. Restarting the server creates a new wallet address; do not fund more than needed, and keep the process running through both payments. The API binds to `127.0.0.1` and must not be exposed publicly. A successful build or test suite does not prove a payment succeeded. See [Stellar integration notes](docs/STELLAR_INTEGRATION.md) and the [demo script](docs/HACKATHON_DEMO.md) for details.
+See [AGENTS.md](AGENTS.md), [thesis.md](thesis.md), and [Pollar setup](docs/POLLAR_WALLET_SETUP.md) for the wider architecture.
