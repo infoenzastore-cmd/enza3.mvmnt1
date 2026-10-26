@@ -1,6 +1,6 @@
 # Stellar Testnet integration
 
-The sample checkout at `demo.html` uses Freighter 6.0.1's documented browser API. It asks for the active Testnet G-address, then signs only after showing the exact order amount, Circle test USDC issuer, merchant destination, memo and expiry. Pollar remains an optional sign-in route in the shopper prototype; it is not the signer for this sample checkout.
+The sample checkout at `demo.html` uses Freighter 6.0.1's documented browser API. It asks for the active Testnet G-address, reads its balances, and offers a wallet-signed Circle test USDC trustline setup when needed. For a purchase it signs only after showing the exact order amount, issuer, merchant destination, memo and expiry. Pollar remains an optional sign-in route in the shopper prototype; it is not the signer for this sample checkout.
 
 The Node API creates a unique, 15-minute order. It builds a classic payment XDR for the customer address and stores its transaction hash. It accepts a signed XDR only if the source, hash, operation, asset, amount and memo match the stored intent. Horizon submission is followed by a separate ledger read; only a successful, unique transaction in the order window marks it paid.
 

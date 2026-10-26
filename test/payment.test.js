@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import { Account, Asset, Keypair, Memo, Networks, Operation, TransactionBuilder } from '@stellar/stellar-sdk';
-import { createOrder, verifyPayment, amountToUnits, validateSignedPayment, payoutAmount, payoutMemo, verifyPayout } from '../payment.js';
+import { createOrder, verifyPayment, amountToUnits, validateSignedPayment, payoutAmount, payoutMemo, verifyPayout, validateSignedTrustline } from '../payment.js';
 const hash='a'.repeat(64), issuer='GISSUER', merchant='GMERCHANT';
 function fixture(){const order=createOrder('antidote');const tx={hash,successful:true,memo_type:'text',memo:order.memo,created_at:new Date().toISOString()};const ops=[{type:'payment',to:merchant,asset_code:'USDC',asset_issuer:issuer,amount:order.amount}];return {order,tx,ops}}
 test('exact payment creates one demo ticket and repeated confirmation is stable',()=>{const {order,tx,ops}=fixture();const paid=verifyPayment(order,hash,tx,ops,{issuer,merchant},new Set());assert.equal(paid.status,'paid');assert.match(paid.ticket,/^DEMO-/);assert.deepEqual(verifyPayment(paid,hash,tx,ops,{issuer,merchant},new Set([hash])),paid)});
@@ -30,4 +30,13 @@ test('payout allocation and ledger match are exact',()=>{
  const config={merchant,vendor:'GVENDOR',issuer};
  assert.equal(verifyPayout(order,hash,tx,[op],config,new Set()).payout.status,'paid');
  assert.throws(()=>verifyPayout(order,hash,tx,[{...op,to:'OTHER'}],config,new Set()),/Incorrect payout/);
+});
+test('trustline signature must match the prepared Circle test USDC intent',()=>{
+ const signer=Keypair.random(),issuer=Keypair.random().publicKey(),other=Keypair.random().publicKey();
+ const account=new Account(signer.publicKey(),'1');
+ const make=asset=>{const tx=new TransactionBuilder(account,{fee:'100',networkPassphrase:Networks.TESTNET}).addOperation(Operation.changeTrust({asset})).setTimeout(60).build();tx.sign(signer);return tx};
+ const tx=make(new Asset('USDC',issuer)),hash=tx.hash().toString('hex');
+ assert.doesNotThrow(()=>validateSignedTrustline(tx,signer.publicKey(),{issuer},hash));
+ assert.throws(()=>validateSignedTrustline(tx,signer.publicKey(),{issuer},'a'.repeat(64)),/intent changed/);
+ assert.throws(()=>validateSignedTrustline(make(new Asset('USDC',other)),signer.publicKey(),{issuer},hash),/intent changed/);
 });

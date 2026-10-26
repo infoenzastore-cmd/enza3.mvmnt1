@@ -3,7 +3,7 @@ import { readFileSync, writeFileSync, renameSync, mkdirSync, existsSync } from '
 import { extname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Horizon, TransactionBuilder } from '@stellar/stellar-sdk';
-import { CATALOG, HORIZON_URL, NETWORK, buildPayment, buildPayout, configFromEnv, createOrder, payoutAmount, validateSignedPayment, validateSignedPayout, verifyPayment, verifyPayout } from './payment.js';
+import { CATALOG, HORIZON_URL, NETWORK, buildPayment, buildPayout, buildTrustline, configFromEnv, createOrder, payoutAmount, validateSignedPayment, validateSignedPayout, validateSignedTrustline, verifyPayment, verifyPayout } from './payment.js';
 const dbPath=new URL('./.data/orders.json',import.meta.url);
 const distUrl=new URL('./dist/',import.meta.url);
 mkdirSync(new URL('./.data/',import.meta.url),{recursive:true});
@@ -11,6 +11,7 @@ let orders=existsSync(dbPath)?JSON.parse(readFileSync(dbPath,'utf8')):{};
 const save=()=>{writeFileSync(new URL('./.data/orders.tmp',import.meta.url),JSON.stringify(orders));renameSync(new URL('./.data/orders.tmp',import.meta.url),dbPath)};
 const horizon=new Horizon.Server(HORIZON_URL);
 const inFlight=new Map();
+const pendingTrustlines=new Map();
 const allowedOrigin=process.env.PUBLIC_ORIGIN||`http://127.0.0.1:${process.env.PORT||3000}`;
 const send=(res,status,data)=>{res.writeHead(status,{'content-type':'application/json','access-control-allow-origin':allowedOrigin,'vary':'Origin','cache-control':'no-store'});res.end(JSON.stringify(data))};
 const servePage=(pathname,res)=>{
@@ -30,6 +31,34 @@ export async function handleRequest(req,res){
   if(req.method==='POST'&&req.headers?.origin&&req.headers.origin!==allowedOrigin)throw Error('Origin is not allowed');
   const url=new URL(req.url,'http://localhost');
   if(req.method==='GET'&&url.pathname==='/api/config'){let paymentConfig;try{paymentConfig=configFromEnv()}catch{}return send(res,200,{network:'Testnet',networkPassphrase:NETWORK,configured:!!paymentConfig,issuer:paymentConfig?.issuer??null,merchant:paymentConfig?.merchant??null,vendor:paymentConfig?.vendor??null,items:Object.entries(CATALOG).map(([id,v])=>({id,name:v.name,kind:v.kind,amount:(Number(v.units)/1e7).toFixed(2)}))})}
+  const trustlineMatch=url.pathname.match(/^\/api\/trustline\/(status|build|submit)$/);
+  if(trustlineMatch){
+   const config=configFromEnv(),action=trustlineMatch[1];
+   if(req.method==='GET'&&action==='status'){
+    const address=url.searchParams.get('address');
+    if(!address||!/^G[A-Z2-7]{55}$/.test(address))throw Error('Invalid wallet address');
+    const account=await horizon.loadAccount(address);
+    const usdc=account.balances.find(b=>b.asset_code==='USDC'&&b.asset_issuer===config.issuer);
+    return send(res,200,{address,ready:!!usdc,usdc:usdc?.balance||'0',xlm:account.balances.find(b=>b.asset_type==='native')?.balance||'0'});
+   }
+   if(req.method==='POST'&&action==='build'){
+    const {address}=await body(req);const xdr=await buildTrustline(address,config,horizon);
+    if(!xdr)return send(res,200,{ready:true});
+    const hash=TransactionBuilder.fromXDR(xdr,NETWORK).hash().toString('hex');
+    pendingTrustlines.set(address,{hash,expiresAt:Date.now()+240000});
+    return send(res,200,{ready:false,xdr,hash,issuer:config.issuer});
+   }
+   if(req.method==='POST'&&action==='submit'){
+    const {signedXdr}=await body(req);const tx=TransactionBuilder.fromXDR(signedXdr,NETWORK);
+    const prepared=pendingTrustlines.get(tx.source);
+    if(!prepared||Date.now()>prepared.expiresAt)throw Error('Trustline setup expired. Build it again.');
+    validateSignedTrustline(tx,tx.source,config,prepared.hash);
+    await horizon.submitTransaction(tx);pendingTrustlines.delete(tx.source);
+    const account=await horizon.loadAccount(tx.source);
+    const ready=account.balances.some(b=>b.asset_code==='USDC'&&b.asset_issuer===config.issuer);
+    return send(res,200,{ready,hash:prepared.hash,explorer:`https://stellar.expert/explorer/testnet/tx/${prepared.hash}`});
+   }
+  }
   if(req.method==='POST'&&url.pathname==='/api/orders'){const data=await body(req);configFromEnv();const order=createOrder(data.itemId);orders[order.id]=order;save();return send(res,201,publicOrder(order))}
   const match=url.pathname.match(/^\/api\/orders\/([0-9a-f-]+)(?:\/(build|submit|confirm|payout-build|payout-submit|payout-confirm))?$/);
   if(match){const order=orders[match[1]];if(!order)return send(res,404,{error:'Order not found'});
