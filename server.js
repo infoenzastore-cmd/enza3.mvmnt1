@@ -15,11 +15,11 @@ const demoWallet=createDemoWallet({horizon});
 const pendingPayments=new Map();
 const send=(res,status,data)=>{res.writeHead(status,{'content-type':'application/json'});res.end(JSON.stringify(data))};
 const servePage=(pathname,res)=>{
- const path=pathname==='/'?'/index.html':pathname;
- if(!['/index.html','/demo.html','/blueprint.html'].includes(path)&&!/^\/assets\/[a-zA-Z0-9._-]+$/.test(path))return false;
+ const path=pathname==='/'?'/index.html':pathname==='/prototype'||pathname==='/prototype/'?'/prototype/index.html':pathname;
+ if(!['/index.html','/demo.html','/blueprint.html','/prototype/index.html'].includes(path)&&!/^\/assets\/[a-zA-Z0-9._-]+$/.test(path)&&!/^\/prototype\/assets\/[a-zA-Z0-9/_-]+\.(jpg|png|webp|svg)$/.test(path))return false;
  const file=new URL('.'+path,distUrl);
  if(!existsSync(file)){send(res,404,{error:'Build the demo with npm run build first'});return true}
- const type={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8'}[extname(path)]||'application/octet-stream';
+ const type={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.jpg':'image/jpeg','.png':'image/png','.webp':'image/webp','.svg':'image/svg+xml'}[extname(path)]||'application/octet-stream';
  res.writeHead(200,{'content-type':type,'cache-control':'no-store'});res.end(readFileSync(file));return true;
 };
 const body=async req=>{let s='';for await(const chunk of req){s+=chunk;if(s.length>20000)throw Error('Request too large')}return JSON.parse(s||'{}')};

@@ -1,4 +1,5 @@
 import { PRODUCTS as products } from './catalog.js';
+import { checkoutApiBase } from './checkout-config.js';
 const byId = new Map(products.map(product => [product.id, product]));
 const money = value => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
 const $ = selector => document.querySelector(selector);
@@ -163,3 +164,14 @@ document.addEventListener('keydown', event => {
 
 renderProducts();
 renderCart();
+
+if (checkoutApiBase) {
+  import('./wallet.js').then(({ initWalletCheckout }) => initWalletCheckout({
+    apiBase: checkoutApiBase,
+    getCartItems: () => cartEntries().map(({ product, quantity }) => ({ id: product.id, quantity })),
+    clearCart: () => { cart = {}; persistCart(); renderCart(); },
+  })).catch(() => {
+    $('#wallet-checkout').hidden = false;
+    $('#wallet-status').textContent = 'Testnet checkout could not start. Please try again later.';
+  });
+}
