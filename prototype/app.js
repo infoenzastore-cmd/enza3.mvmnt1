@@ -1,45 +1,23 @@
-const images = {
-  ritual: './assets/ritual.jpg',
-  body: './assets/body.jpg',
-  home: './assets/home.jpg',
-  mindful: './assets/mindful.jpg'
-};
-
 const seed = [
-  ['The morning pause', 'Ritual', 24, 'A quiet start, imagined for everyday routines.', 'Grounded'],
-  ['Scent of stillness', 'Ritual', 32, 'An aromatic moment for your space.', 'Rested'],
-  ['Evening light', 'Ritual', 28, 'A soft glow for winding down.', 'Rested'],
-  ['Slow Sunday kit', 'Ritual', 45, 'A little room for a weekly reset.', 'Grounded'],
-  ['Daybreak ritual', 'Ritual', 26, 'A fresh beginning for ordinary days.', 'Energized'],
-  ['Soft beginnings', 'Body', 29, 'An imagined part of a gentler routine.', 'Rested'],
-  ['Everyday glow', 'Body', 36, 'Simple self-care for the daily edit.', 'Energized'],
-  ['The body edit', 'Body', 38, 'A considered object for personal care.', 'Grounded'],
-  ['After hours', 'Body', 34, 'A slow moment at the end of the day.', 'Rested'],
-  ['Fresh perspective', 'Body', 31, 'A little lift for your daily ritual.', 'Energized'],
-  ['The quiet corner', 'Home', 48, 'An object to make space feel your own.', 'Grounded'],
-  ['Earth & form', 'Home', 54, 'Organic textures for a lived-in home.', 'Grounded'],
-  ['A softer space', 'Home', 42, 'An easy detail for more comfortable days.', 'Rested'],
-  ['Home in bloom', 'Home', 39, 'An imagined accent inspired by nature.', 'Energized'],
-  ['The gathering table', 'Home', 58, 'For the everyday moments we share.', 'Grounded'],
-  ['Open pages', 'Mindful living', 22, 'An invitation to pause and reflect.', 'Grounded'],
-  ['Breathe a little', 'Mindful living', 18, 'A small prompt for a spacious day.', 'Rested'],
-  ['Move gently', 'Mindful living', 44, 'For movement on your own terms.', 'Energized'],
-  ['The reset ritual', 'Mindful living', 27, 'A new way to make time for yourself.', 'Rested'],
-  ['The everyday intention', 'Mindful living', 25, 'A thoughtful cue to begin again.', 'Energized']
+  ['Happy Gut Goli', 'Food', 18, 'A spiced botanical bite for a mindful pantry.', 'Energized', 'happy-gut-goli'],
+  ['Evening Unwind Herbal Tea', 'Food', 16, 'A loose leaf blend for a slower evening.', 'Rested', 'evening-unwind-tea'],
+  ['Cleanergizer Water Restorer', 'Lifestyle', 39, 'A reusable object for your daily water ritual.', 'Grounded', 'cleanergizer'],
+  ['Organic Super Seeds Butter', 'Food', 14, 'A richly textured spread for everyday nourishment.', 'Energized', 'super-seeds-butter'],
+  ['Orange Berry Victoria Cake', 'Food', 22, 'A bright, celebratory cake for sharing.', 'Energized', 'orange-berry-cake'],
+  ['Organic Raw Khandsari Sugar', 'Food', 12, 'A traditional pantry sweetener with a warm character.', 'Grounded', 'khandsari-sugar'],
+  ['Protein Balls', 'Food', 15, 'Seven grain sweet bites for an easy pause.', 'Energized', 'protein-balls'],
+  ['Primal Helix Tensor Clasps', 'Lifestyle', 26, 'Sculptural copper details for a personal ritual.', 'Grounded', 'tensor-clasps'],
+  ['Clara Dress · Tulip Print', 'Fashion', 68, 'An expressive silhouette with a soft floral note.', 'Energized', 'clara-dress'],
+  ['Blair Vest Top · Black', 'Fashion', 52, 'A versatile layer with considered lines.', 'Grounded', 'blair-vest'],
+  ['Macrame Storage Baskets · Set of 3', 'Home', 42, 'Handcrafted texture to bring order to a room.', 'Grounded', 'macrame-baskets'],
+  ['Organic Homemade Hair Oil', 'Lifestyle', 19, 'A botanical addition to a quiet care routine.', 'Rested', 'hair-oil'],
+  ['Fenugreek Nettle Ginger Hair Pack', 'Lifestyle', 17, 'An herbal blend for your hair care ritual.', 'Rested', 'hair-pack'],
+  ['Urli Soy Wax Candle', 'Home', 24, 'A warm glow for the spaces where you slow down.', 'Rested', 'urli-candle']
 ];
-
-const imageOrder = [
-  'ritual', 'body', 'home', 'mindful', 'ritual',
-  'body', 'ritual', 'body', 'ritual', 'body',
-  'home', 'mindful', 'home', 'ritual', 'home',
-  'mindful', 'ritual', 'mindful', 'body', 'mindful'
-];
-const imageCounts = { ritual: 0, body: 0, home: 0, mindful: 0 };
-const products = seed.map(([name, category, price, description, mood], index) => {
-  const imageKey = imageOrder[index];
-  const position = ['0%', '25%', '50%', '75%', '100%', '50%', '100%'][imageCounts[imageKey]++];
-  return { id: index + 1, name, category, price, description, mood, image: images[imageKey], position };
-});
+const products = seed.map(([name, category, price, description, mood, image], index) => ({
+  id: index + 1, name, category, price, description, mood,
+  image: `./assets/products/${image}.jpg`
+}));
 const byId = new Map(products.map(product => [product.id, product]));
 const money = value => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
 const $ = selector => document.querySelector(selector);
@@ -80,7 +58,7 @@ function renderProducts() {
   );
   $('#product-grid').innerHTML = list.map(product => `
     <article class="product-card">
-      <div class="product-image"><img src="${product.image}" style="object-position:${product.position} center" alt="Illustrative imagery for ${product.name}" loading="lazy"><span class="product-tag">Concept product</span><button class="add-button" type="button" data-add="${product.id}" aria-label="Add ${product.name} to concept bag">+</button></div>
+      <div class="product-image"><img src="${product.image}" alt="Concept render of ${product.name}" loading="lazy"><span class="product-tag">Concept edit</span><button class="add-button" type="button" data-add="${product.id}" aria-label="Add ${product.name} to concept bag">+</button></div>
       <div class="product-meta"><div><span class="product-category">${product.category}</span><h3 class="product-name">${product.name}</h3></div><span class="product-price">${money(product.price)}</span></div>
       <p class="product-description">${product.description}</p>
     </article>`).join('');
