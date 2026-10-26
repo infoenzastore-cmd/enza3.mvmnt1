@@ -12,8 +12,10 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" href="./style.css?v=prewallet-20261026">
   <link rel="stylesheet" href="./survey.css">
+  <link rel="stylesheet" href="./wallet.css?v=wallet-20261026">
   <script src="./app.js?v=prewallet-20261026" defer></script>
   <script src="./survey.js" defer></script>
+  <script type="module" src="./wallet.js?v=wallet-20261026"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -22,7 +24,7 @@
     <div class="header-inner wrap">
       <a class="brand" href="#top" aria-label="ENZA Movement home"><img class="brand-emblem" src="./assets/enza-emblem.png" alt=""><span class="brand-wordmark">EnZa<small>MOVEMENT</small></span></a>
       <nav class="desktop-nav" aria-label="Main navigation"><a href="#shop">Shop</a><a href="#discover">Discover</a><a href="#experiences">Experiences</a><a href="#story">Our story</a></nav>
-      <div class="header-actions"><button class="icon-button search-trigger" type="button" aria-label="Search products" title="Search products"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg></button><button class="cart-trigger" type="button" aria-label="Open bag"><span>Bag</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16l-1 13H5L4 8Z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg><span class="bag-count" id="bag-count">0</span></button><button class="menu-trigger" type="button" aria-expanded="false" aria-controls="mobile-nav" aria-label="Open menu"><span></span><span></span></button></div>
+      <div class="header-actions"><button class="wallet-trigger" id="wallet-trigger" type="button" aria-haspopup="dialog" aria-controls="wallet-dialog">Wallet</button><button class="icon-button search-trigger" type="button" aria-label="Search products" title="Search products"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg></button><button class="cart-trigger" type="button" aria-label="Open bag"><span>Bag</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16l-1 13H5L4 8Z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg><span class="bag-count" id="bag-count">0</span></button><button class="menu-trigger" type="button" aria-expanded="false" aria-controls="mobile-nav" aria-label="Open menu"><span></span><span></span></button></div>
     </div>
     <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation" hidden><a href="#shop">Shop</a><a href="#discover">Discover</a><a href="#experiences">Experiences</a><a href="#story">Our story</a></nav>
   </header>
@@ -56,6 +58,23 @@
   </section>
   <aside class="cart-drawer" id="cart-drawer" aria-labelledby="cart-title" aria-modal="true" role="dialog" hidden><div class="drawer-header"><div><p class="eyebrow">YOUR EDIT</p><h2 id="cart-title">Your bag <span id="drawer-count">(0)</span></h2></div><button class="close-cart icon-button" type="button" aria-label="Close bag">×</button></div><div id="cart-items" class="cart-items"></div><div class="cart-bottom"><div class="subtotal"><span>Illustrative subtotal</span><strong id="subtotal">$0.00</strong></div><p>These are concept products. Checkout is not live, and no payment will be taken.</p><button type="button" class="button button-dark review-button" id="review-button">Review concept order <span aria-hidden="true">↗</span></button></div></aside>
   <div class="review-modal" id="review-modal" role="dialog" aria-modal="true" aria-labelledby="review-title" hidden><div class="review-header"><p class="eyebrow">ORDER PREVIEW</p><button class="close-review icon-button" type="button" aria-label="Close order preview">×</button></div><h2 id="review-title">A preview of<br><em>what's to come.</em></h2><p>Here is your concept order in USD. A future ENZA Movement checkout will offer eligible payment methods, including Stellar USDC, after inventory and settlement are ready.</p><div id="review-lines" class="review-lines"></div><div class="review-total"><span>Illustrative total</span><strong id="review-total">$0.00</strong></div><div class="payment-preview"><span>Future payment options</span><div>USD card payment <small>Planned</small></div><div>Stellar USDC <small>Testnet integration in development</small></div></div><p class="review-disclaimer">No order is created, no wallet is connected, and no payment is sent from this preview.</p><button class="button button-dark close-review" type="button">Continue exploring <span aria-hidden="true">↗</span></button></div>
+  <dialog class="wallet-dialog" id="wallet-dialog" aria-labelledby="wallet-title">
+    <div class="wallet-dialog-top"><p class="eyebrow">WALLET INTEGRATION</p><button type="button" class="wallet-close" id="wallet-close" aria-label="Close wallet">×</button></div>
+    <h2 id="wallet-title">Your Stellar wallet</h2>
+    <p class="wallet-intro">Connect on Stellar Testnet with Pollar or your Freighter wallet. Testnet assets have no cash value.</p>
+    <p class="wallet-status" id="wallet-status" role="status" aria-live="polite">Preparing wallet connection…</p>
+    <div class="wallet-login-actions" id="wallet-login-actions">
+      <button type="button" class="button button-dark" id="pollar-login" disabled>Continue with Pollar <span aria-hidden="true">↗</span></button>
+      <button type="button" class="button wallet-secondary" id="freighter-login" disabled>Connect Freighter <span aria-hidden="true">↗</span></button>
+    </div>
+    <div class="wallet-details" id="wallet-details" hidden>
+      <p class="wallet-label">STELLAR TESTNET ADDRESS</p>
+      <p class="wallet-address" id="wallet-address"></p>
+      <div class="wallet-detail-actions"><button type="button" id="wallet-copy">Copy address</button><a id="wallet-explorer" target="_blank" rel="noopener noreferrer">View on explorer ↗</a><button type="button" id="wallet-logout">Disconnect</button></div>
+    </div>
+    <p class="wallet-note">Wallet connection is available for Testnet setup. This storefront remains a concept preview: no order or payment is created here.</p>
+  </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
+
