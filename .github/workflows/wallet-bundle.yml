@@ -22,6 +22,7 @@ jobs:
           node-version: '22'
       - run: npm ci
       - run: npm install @pollar/core@0.12.0 --save-exact
+      - run: npm install esbuild@0.25.12 --no-save
       - run: ./node_modules/.bin/esbuild prototype/wallet.js --bundle --format=esm --platform=browser --target=es2022 --outfile=prototype/wallet.bundle.js
       - name: Commit browser bundle and lockfile
         run: |
