@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import { Account, Asset, Keypair, Memo, Networks, Operation, TransactionBuilder } from '@stellar/stellar-sdk';
-import { createOrder, verifyPayment, amountToUnits, validateSignedPayment } from '../payment.js';
+import { createOrder, verifyPayment, amountToUnits, validateSignedPayment, payoutAmount, payoutMemo, verifyPayout } from '../payment.js';
 const hash='a'.repeat(64), issuer='GISSUER', merchant='GMERCHANT';
 function fixture(){const order=createOrder('antidote');const tx={hash,successful:true,memo_type:'text',memo:order.memo,created_at:new Date().toISOString()};const ops=[{type:'payment',to:merchant,asset_code:'USDC',asset_issuer:issuer,amount:order.amount}];return {order,tx,ops}}
 test('exact payment creates one demo ticket and repeated confirmation is stable',()=>{const {order,tx,ops}=fixture();const paid=verifyPayment(order,hash,tx,ops,{issuer,merchant},new Set());assert.equal(paid.status,'paid');assert.match(paid.ticket,/^DEMO-/);assert.deepEqual(verifyPayment(paid,hash,tx,ops,{issuer,merchant},new Set([hash])),paid)});
@@ -14,9 +14,20 @@ test('parsed Stellar XDR preserves payment details and decodes memo bytes',()=>{
  const account=new Account(source,'1');
  const makeXdr=(amount,memo)=>new TransactionBuilder(account,{fee:'100',networkPassphrase:Networks.TESTNET})
   .addOperation(Operation.payment({destination,asset:new Asset('USDC',assetIssuer),amount}))
-  .addMemo(Memo.text(memo)).setTimeout(60).build().toXDR();
+  .addMemo(Memo.text(memo)).setTimeout(60).build();
  const parse=xdr=>TransactionBuilder.fromXDR(xdr,Networks.TESTNET);
- assert.doesNotThrow(()=>validateSignedPayment(parse(makeXdr(order.amount,order.memo)),order,config));
- assert.throws(()=>validateSignedPayment(parse(makeXdr('11.0000000',order.memo)),order,config),/details changed/);
- assert.throws(()=>validateSignedPayment(parse(makeXdr(order.amount,'wrong')),order,config),/does not match/);
+ const makeSigned=(amount,memo)=>{const tx=makeXdr(amount,memo);tx.sign(Keypair.random());return parse(tx.toXDR())};
+ assert.doesNotThrow(()=>validateSignedPayment(makeSigned(order.amount,order.memo),order,config));
+ assert.throws(()=>validateSignedPayment(makeSigned('11.0000000',order.memo),order,config),/details changed/);
+ assert.throws(()=>validateSignedPayment(makeSigned(order.amount,'wrong'),order,config),/does not match/);
+});
+test('payout allocation and ledger match are exact',()=>{
+ const {order}=fixture();order.status='paid';order.paidAt=order.createdAt;order.payout={status:'submitted',amount:payoutAmount(order.amount),vendor:'GVENDOR',hash};
+ assert.equal(payoutAmount('5.0000000'),'4.5000000');
+ assert.match(payoutMemo(order),/^ENZA-/);
+ const tx={hash,successful:true,source_account:merchant,memo_type:'text',memo:payoutMemo(order),created_at:new Date().toISOString()};
+ const op={type:'payment',from:merchant,to:'GVENDOR',asset_code:'USDC',asset_issuer:issuer,amount:order.payout.amount};
+ const config={merchant,vendor:'GVENDOR',issuer};
+ assert.equal(verifyPayout(order,hash,tx,[op],config,new Set()).payout.status,'paid');
+ assert.throws(()=>verifyPayout(order,hash,tx,[{...op,to:'OTHER'}],config,new Set()),/Incorrect payout/);
 });
