@@ -1,32 +1,8 @@
 const images = {
-  ritual: [
-    'photo-1608571423902-eed4a5ad8108',
-    'photo-1547887538-e3a2f32cb1cc',
-    'photo-1608248543803-ba4f8c70ae0b',
-    'photo-1512290923902-8a9f81dc236c',
-    'photo-1608571423902-eed4a5ad8108'
-  ],
-  body: [
-    'photo-1611930022073-b7a4ba5fcccd',
-    'photo-1620916566398-39f1143ab7be',
-    'photo-1556228578-0d85b1a4d571',
-    'photo-1601049541289-9b1b7bbbfe19',
-    'photo-1611930022073-b7a4ba5fcccd'
-  ],
-  home: [
-    'photo-1618221195710-dd6b41faaea6',
-    'photo-1493857671505-72967e2e2760',
-    'photo-1602874801006-e26c7304b707',
-    'photo-1513506003901-1e6a229e2d15',
-    'photo-1618221195710-dd6b41faaea6'
-  ],
-  mindful: [
-    'photo-1515377905703-c4788e51af15',
-    'photo-1499209974431-9dddcece7f88',
-    'photo-1544367567-0f2fcb009e0b',
-    'photo-1517841905240-472988babdf9',
-    'photo-1515377905703-c4788e51af15'
-  ]
+  ritual: './assets/ritual.jpg',
+  body: './assets/body.jpg',
+  home: './assets/home.jpg',
+  mindful: './assets/mindful.jpg'
 };
 
 const seed = [
@@ -55,8 +31,8 @@ const seed = [
 const categoryImage = { Ritual: images.ritual, Body: images.body, Home: images.home, 'Mindful living': images.mindful };
 const categoryCounts = { Ritual: 0, Body: 0, Home: 0, 'Mindful living': 0 };
 const products = seed.map(([name, category, price, description, mood], index) => {
-  const image = categoryImage[category][categoryCounts[category]++];
-  return { id: index + 1, name, category, price, description, mood, image: `https://images.unsplash.com/${image}?auto=format&fit=crop&w=800&q=80` };
+  const position = ['0%', '25%', '50%', '75%', '100%'][categoryCounts[category]++];
+  return { id: index + 1, name, category, price, description, mood, image: categoryImage[category], position };
 });
 const byId = new Map(products.map(product => [product.id, product]));
 const money = value => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
@@ -98,7 +74,7 @@ function renderProducts() {
   );
   $('#product-grid').innerHTML = list.map(product => `
     <article class="product-card">
-      <div class="product-image"><img src="${product.image}" alt="Illustrative imagery for ${product.name}" loading="lazy"><span class="product-tag">Concept product</span><button class="add-button" type="button" data-add="${product.id}" aria-label="Add ${product.name} to concept bag">+</button></div>
+      <div class="product-image"><img src="${product.image}" style="object-position:${product.position} center" alt="Illustrative imagery for ${product.name}" loading="lazy"><span class="product-tag">Concept product</span><button class="add-button" type="button" data-add="${product.id}" aria-label="Add ${product.name} to concept bag">+</button></div>
       <div class="product-meta"><div><span class="product-category">${product.category}</span><h3 class="product-name">${product.name}</h3></div><span class="product-price">${money(product.price)}</span></div>
       <p class="product-description">${product.description}</p>
     </article>`).join('');
