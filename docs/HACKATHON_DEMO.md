@@ -1,9 +1,7 @@
-# Testnet demonstration
+# Three-minute demo script
 
-1. Verify the Circle test USDC issuer and configure distinct public customer, merchant and vendor Testnet G-addresses. Give all needed accounts test XLM and an authorized test USDC trustline.
-2. Start the persistent Node API with the environment in `.env.example`. Open `demo.html` from the same origin locally, or set its `enza-api-base` meta tag to the deployed HTTPS API URL.
-3. In Freighter on Testnet, connect the funded customer wallet. Create the sample order. Review and sign the exact USDC payment.
-4. Wait for independent ledger confirmation, show the Testnet explorer link and the demo ticket for the event sample.
-5. Switch Freighter to the merchant wallet. Review and sign the 90% vendor payout. Wait for its independent confirmation and show that explorer link.
-
-All assets are Testnet assets without monetary value. If any submission outcome is unclear, use the confirmation retry before signing another transaction.
+1. Open the ENZA Movement site. Follow **Shop EnZa** to the unchanged live store at enza.in, then return to **Experience Antidote**. Explain that its event programme is a concept and Axess.Zone is not connected. The earlier presentation remains at `blueprint.html`.
+2. Open the separate ENZA Movement Testnet demo. Prepare its disposable wallet, show the public payer address and Testnet XLM balance, and fund it with test USDC through Circle's faucet. No wallet extension is required.
+3. Choose the **sample** reusable bottle, review the exact destination, issuer, amount, payer and memo, then click **Authorize demo Testnet payment**. Show the server-confirmed order and Testnet transaction link. This requires a funded Testnet demo account and has not been demonstrated by repository tests alone.
+4. Choose the **demo** ENZA-hosted sound healing session and repeat checkout to show that the same payment path issues one unique demo ticket after confirmation. There is no live booking or ticket fulfillment integration.
+5. Explain that vendor settlement is planned: allocations and payout authorization must be built and tested before claiming a real vendor payout. The demonstration merchant address can receive Testnet USDC but cannot send payouts because its temporary signing key was discarded. International expansion also requires country-specific on/off-ramp and compliance review.

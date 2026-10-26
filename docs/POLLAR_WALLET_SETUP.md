@@ -14,8 +14,8 @@ An allowed origin contains no path. The redirect URI does include the prototype
 path. Enable Stellar under **Wallets > Wallet settings**. Freighter users must
 choose Testnet in their extension before signing in.
 
-The GitHub Pages storefront remains a concept preview. Pollar sign-in there
-does not create an order or send USDC. The separate `demo.html` checkout uses
-Freighter to sign a sample Testnet payment and merchant-authorized payout,
-provided that its persistent API is deployed and configured. See
-`docs/STELLAR_INTEGRATION.md` for the exact flow.
+The GitHub Pages storefront remains a concept preview. Connecting a wallet does
+not create an order or send USDC. A payment button should only be enabled after
+deploying a server-side payment-intent and Stellar verification service, adding
+the merchant's Circle Testnet USDC trustline, and checking an end-to-end Testnet
+payment. See `thesis.md` for the payment and vendor payout acceptance criteria.
