@@ -1,12 +1,24 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import { Account, Asset, Keypair, Memo, Networks, Operation, TransactionBuilder } from '@stellar/stellar-sdk';
-import { createOrder, verifyPayment, amountToUnits, validateSignedPayment } from '../payment.js';
+import { createOrder, createCartOrder, verifyPayment, amountToUnits, validateSignedPayment } from '../payment.js';
 const hash='a'.repeat(64), issuer='GISSUER', merchant='GMERCHANT';
 function fixture(){const order=createOrder('antidote');const tx={hash,successful:true,memo_type:'text',memo:order.memo,created_at:new Date().toISOString()};const ops=[{type:'payment',to:merchant,asset_code:'USDC',asset_issuer:issuer,amount:order.amount}];return {order,tx,ops}}
 test('exact payment creates one demo ticket and repeated confirmation is stable',()=>{const {order,tx,ops}=fixture();const paid=verifyPayment(order,hash,tx,ops,{issuer,merchant},new Set());assert.equal(paid.status,'paid');assert.match(paid.ticket,/^DEMO-/);assert.deepEqual(verifyPayment(paid,hash,tx,ops,{issuer,merchant},new Set([hash])),paid)});
 test('rejects wrong asset, amount, destination, memo, failed and duplicate',()=>{for(const changed of [{ops:[{asset_issuer:'other'}]},{ops:[{amount:'1.0000000'}]},{ops:[{to:'other'}]},{tx:{memo:'other'}},{tx:{successful:false}},{used:new Set([hash])}]){const {order,tx,ops}=fixture();Object.assign(tx,changed.tx);if(changed.ops)Object.assign(ops[0],changed.ops[0]);assert.throws(()=>verifyPayment(order,hash,tx,ops,{issuer,merchant},changed.used||new Set()))}});
 test('rejects expired payment',()=>{const {order,tx,ops}=fixture();order.expiresAt='2020-01-01T00:00:00Z';assert.throws(()=>verifyPayment(order,hash,tx,ops,{issuer,merchant},new Set()))});
 test('amounts use integer stroops',()=>{assert.equal(amountToUnits('12.5000000'),125000000n);assert.throws(()=>amountToUnits('0.00000001'))});
+test('cart order uses server catalogue prices and binds the paying wallet',()=>{
+ const customer=Keypair.random().publicKey();
+ const order=createCartOrder([{id:1,quantity:2},{id:14,quantity:1}],customer);
+ assert.equal(order.amount,'60.0000000');
+ assert.deepEqual(order.items.map(item=>item.unitPrice),[18,24]);
+ assert.throws(()=>createCartOrder([{id:1,quantity:1},{id:1,quantity:1}],customer),/Invalid bag item/);
+ assert.throws(()=>createCartOrder([{id:1,quantity:999}],customer),/Invalid bag item/);
+ const tx={hash,successful:true,memo_type:'text',memo:order.memo,created_at:new Date().toISOString()};
+ const operation={type:'payment',from:customer,to:merchant,asset_code:'USDC',asset_issuer:issuer,amount:order.amount};
+ assert.equal(verifyPayment(order,hash,tx,[operation],{issuer,merchant},new Set()).status,'paid');
+ assert.throws(()=>verifyPayment(order,hash,tx,[{...operation,from:Keypair.random().publicKey()}],{issuer,merchant},new Set()),/Incorrect destination/);
+});
 test('parsed Stellar XDR preserves payment details and decodes memo bytes',()=>{
  const order=createOrder('bottle');
  const source=Keypair.random().publicKey(),destination=Keypair.random().publicKey(),assetIssuer=Keypair.random().publicKey();
