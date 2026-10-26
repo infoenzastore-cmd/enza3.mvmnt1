@@ -1,6 +1,7 @@
+import { PollarClient, WalletType } from '@pollar/core';
+
 // Pollar's publishable Testnet key is intentionally public. Never put a secret key here.
 const POLLAR_KEY = 'pub_testnet_0d085cabce6cbe577833ca20ab53ef9e';
-const SDK_MODULE = 'https://esm.sh/@pollar/core@0.12.0?bundle';
 const dialog = document.querySelector('#wallet-dialog');
 const trigger = document.querySelector('#wallet-trigger');
 const status = document.querySelector('#wallet-status');
@@ -106,7 +107,6 @@ document.querySelector('#wallet-logout').addEventListener('click', async () => {
 });
 
 try {
-  const { PollarClient, WalletType } = await import(SDK_MODULE);
   walletType = WalletType;
   client = new PollarClient({
     apiKey: POLLAR_KEY,
