@@ -1,17 +1,17 @@
 # ENZA Movement architecture — foundation proposal
 
-Status: **proposed**, 26 October 2026. This document audits the `enza3.mvmnt1` prototype and describes a new, unified ENZA Movement marketplace for holistic wellbeing products and experiences. It does not describe a deployed commerce service. The former `enza.in` business is being retired as a separate destination; no integration or migration from it is planned.
+Status: **proposed**, 26 October 2026. This document audits `enza3.mvmnt1` and describes a new, unified ENZA Movement marketplace for holistic wellbeing products and experiences. It does not describe a deployed commerce service. The former `enza.in` business is being retired as a separate destination; no integration or migration from it is planned. A separate static shopper prototype now exists at [`prototype/`](prototype/); it is a design and interaction preview, not the server-backed architecture proposed below.
 
 ## Current system
 
 | Area | Observed in this repository | Consequence |
 | --- | --- | --- |
-| Frontend | Plain `index.html`, `demo.html`, `blueprint.html`, `movement.css`, `demo.css`, `demo.js`; Vite 8 build | Concept site and two-item checkout demonstration, not a product application |
+| Frontend | Root plain HTML/CSS/JS concept and local demo with Vite 8 build; separate `prototype/index.html`, `style.css`, `app.js` | Shopper-facing visual prototype, not a production commerce application |
 | Deployment | GitHub Pages serves static files from `main`; local `server.js` serves built pages and API on `127.0.0.1:3000` | Pages checkout is explicitly simulated; it cannot execute the local Node API |
-| Products, cart, orders | Two hard-coded samples in `payment.js`; no catalogue, variants, inventory, cart, customer accounts or shipping; local orders in `.data/orders.json` | No reusable production commerce backend is available here |
+| Products, cart, orders | Two hard-coded Testnet samples in `payment.js`; 14 referenced concept products and browser-local cart in `prototype/app.js`; no real catalogue, variants, inventory, customer accounts or shipping; demo orders in `.data/orders.json` | No production commerce backend is available here; prototype review creates no order |
 | Payments | `@stellar/stellar-sdk` 16, Horizon Testnet, server-side exact payment checks in `payment.js`; local disposable server-held signing key in `demo-wallet.js` | Verification rules are useful; the demo signing model is not a customer wallet architecture |
 | Content, search, CRM, analytics | No CMS, search service, lead database, consent system or event analytics | All require selection and implementation |
-| Reusable UI | Wordmark, warm cream/ink/olive/gold tokens, serif/sans type, hero, cards, buttons, responsive grids and reduced-motion rules in `movement.css` | Extract as tokens/components; retain ENZA identity while broadening into wellness commerce |
+| Reusable UI | ENZA lotus artwork supplied by the owner, responsive prototype components, product cards, filters, discovery choices, cart/review dialog and reduced-motion rules | Extract as tokens/components for the eventual marketplace app |
 
 Sources: [`README.md`](README.md), [`package.json`](package.json), [`server.js`](server.js), [`payment.js`](payment.js), [`demo.js`](demo.js), [`movement.css`](movement.css), [`docs/STELLAR_INTEGRATION.md`](docs/STELLAR_INTEGRATION.md).
 
@@ -37,10 +37,10 @@ Server components may read the catalogue directly; client components handle filt
 
 ## Data and integration boundaries
 
-- **Catalogue:** `Product`, `Variant`, `Category`, `Maker`, `Media`, `Price` and availability. Seed 20 clearly labelled placeholder products across wellness, home, personal care and gifting. Placeholder copy, images and prices must not imply real stock, verified sourcing or medical benefit. Replace with approved inventory before paid sales.
+- **Catalogue:** `Product`, `Variant`, `Category`, `Maker`, `Media`, `Price` and availability. The current preview uses 14 owner-supplied product references across Food, Fashion, Lifestyle and Home. Rendered imagery, proposed packaging and USD prices are labelled as concepts; they must not imply real stock, verified sourcing or medical benefit. Replace with approved inventory before paid sales.
 - **Commerce:** `Cart`/`CartItem` lead to an immutable priced `Order` with line items, USD prices, tax/shipping decision and status history. Decimal-safe USD cents for display/fiat and exact 7-decimal asset units for Stellar USDC; never trust browser totals. Reservation, fulfillment and returns depend on approved real inventory.
 - **Payments:** `PaymentIntent`/`Attempt` record provider, network, expected amount, asset, merchant, unique order reference, status, transaction hash and audit timestamps. A unique constraint on transaction hash and idempotent state transition prevents duplicate fulfillment. Fiat gateway and its webhook remain to be chosen; Stellar is optional alongside fiat.
-- **Content and discovery:** Editorial stories and maker profiles drive category and product exploration. Start with curated tags, goals and consent-based preference inputs; no opaque health profiling. Store explicit answers only with consent and allow removal. Use database text search and filters for a 20-product catalogue; add Meilisearch or Algolia only after relevance/scale measurements justify it.
+- **Content and discovery:** Editorial stories and maker profiles drive category and product exploration. Start with curated tags, goals and consent-based preference inputs; no opaque health profiling. Store explicit answers only with consent and allow removal. Use database text search and filters for a small catalogue; add Meilisearch or Algolia only after relevance/scale measurements justify it.
 - **CRM and analytics:** Vendor applications, waitlist/newsletter consent and service requests flow through validated server endpoints with spam controls. Define events such as `product_viewed`, `filter_used`, `add_to_cart`, `checkout_started`, `payment_method_selected`, `order_confirmed`, `vendor_application_submitted`; do not send addresses, health answers or payment identifiers into analytics. Pick CRM and analytics vendors after consent, region and retention decisions. GA4/PostHog are candidates, not integrations.
 
 ## Stellar checkout boundary
@@ -51,7 +51,7 @@ The current no-extension local demo signs with a disposable **server-held Testne
 
 ## Experience and journeys
 
-Visual direction from the supplied images: wellness-first editorial photography; tactile product and maker stories; warm cream, clay, cocoa and olive surfaces; large calm typography; restrained motion; mobile-first product cards. Preserve current ENZA wordmark and core tokens. The purple wallet visual is a secondary checkout cue, not the homepage identity. Provide authentic trust signals (maker, ingredients/materials, shipping, returns) only when verified. Maintain readable contrast, keyboard access, responsive layouts, image alt text and reduced motion.
+Visual direction from the supplied brand kit: lotus emblem and EnZa wordmark; cream `#F8F0E8`, near-black `#131210`, gold `#EAB23D`, teal `#459599`, with olive `#B5BF5E` and coral `#E3727A` as restrained accents. The owner identified Enza Type for headings and Museo 300/500 for body, but font files have not been supplied, so the prototype uses clearly temporary substitutes. Use wellness-first editorial photography, tactile product and maker stories, restrained motion and mobile-first product cards. The purple wallet reference is a secondary checkout cue, not the homepage identity. Provide authentic trust signals only when verified. Maintain readable contrast, keyboard access, responsive layouts, image alt text and reduced motion.
 
 | Persona | Journey | First useful conversion |
 | --- | --- | --- |

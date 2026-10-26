@@ -1,10 +1,10 @@
 # Foundation and design identity — implementation plan
 
-Status: **plan only**. Read with [`ARCHITECTURE.md`](ARCHITECTURE.md), [`MIGRATION_PLAN.md`](MIGRATION_PLAN.md), [`AGENTS.md`](AGENTS.md) and [`thesis.md`](thesis.md). This root plan is new; the earlier [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md) remains untouched as a record of the existing Testnet demo.
+Status: **foundation implemented, payments pending**. Read with [`ARCHITECTURE.md`](ARCHITECTURE.md), [`MIGRATION_PLAN.md`](MIGRATION_PLAN.md), [`AGENTS.md`](AGENTS.md) and [`thesis.md`](thesis.md). The earlier [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md) remains a record of the existing local Testnet demo.
 
 ## Outcome and smallest path
 
-The first useful milestone is a polished, responsive, shopper-first ENZA Movement prototype for holistic wellbeing products and experiences, with 20 honestly labelled placeholders, guided discovery, a cart and a clear USD/USDC payment review. The new marketplace owns checkout. A real Testnet payment, if included in today's prototype, needs server verification and cannot mark placeholder stock as fulfilled. The path to selling then connects approved inventory, persistent orders and selected payment methods. Avoid installing a CMS, search cluster, CRM, analytics suite, marketplace engine or EVM wallet stack before their corresponding use case and provider decision exist.
+The polished, responsive shopper-first prototype is published at `/prototype/` with 14 owner-referenced product concepts, guided discovery, a local cart and a clear USD/USDC payment review. The new marketplace owns checkout. The owner requests a real Testnet payment next; it needs a hosted API, durable order storage and server verification, and cannot mark placeholder stock as fulfilled. The path to selling then connects approved inventory, persistent orders and selected payment methods. Avoid installing a CMS, search cluster, CRM, analytics suite, marketplace engine or EVM wallet stack before their corresponding use case and provider decision exist.
 
 ## Proposed file map (additions, not edits in this part)
 
@@ -17,22 +17,22 @@ The first useful milestone is a polished, responsive, shopper-first ENZA Movemen
 | `apps/web/modules/catalogue/`, `discovery/`, `cart/`, `orders/` | Typed domain models, server pricing and persistence contracts |
 | `apps/web/modules/payments/fiat/`, `stellar/` | Provider adapters; Stellar transaction construction/verification separated from route handlers |
 | `apps/web/modules/content/`, `leads/`, `analytics/` | Provider-neutral interfaces with local/disabled adapters until selected |
-| `apps/web/data/sample-products.ts` | 20 safe placeholder records, isolated from real catalogue and checkout |
+| `apps/web/data/sample-products.ts` | The 14 owner-referenced product concepts, isolated from real inventory and checkout |
 | `apps/web/tests/...` | Journey and payment boundary tests where behavior or money movement warrants them |
 
 This layout is a proposal; adjust to the actual app scaffold when coding begins. Keep the current root Vite files operational throughout migration.
 
 ## Phase 1 — foundation and identity
 
-**Build:** create the new app scaffold with TypeScript and Tailwind; extract colors, typography and spacing from `movement.css` into tokens; design a welcoming shopper-first homepage with editorial wellness hero, products, experiences, maker evidence, stories and a secondary optional payments cue. Use the supplied images as references for premium product photography, conscious interiors, mobile shopping and conversion hierarchy. Preserve the wordmark and avoid copying the four-panel screenshot literally. Provide buyer, vendor and community calls to action, but send forms only to a configured server endpoint.
+**Build:** use the supplied lotus art and exact brand colors in the public shell; create the eventual Next.js/TypeScript scaffold when server commerce begins. The static prototype now has the editorial wellness hero, catalogue, experience references and maker invitation. The custom Enza Type and Museo font files remain an asset dependency; temporary web-font substitutes are used. Provide buyer, vendor and community calls to action, but send forms only to a configured server endpoint.
 
 **Acceptance:** `npm ci`, lint/typecheck/build pass for the new app; homepage and navigation work at phone, tablet and desktop widths; keyboard and screen-reader paths are usable; reduced-motion preference works; title, description, canonical and Open Graph content are deliberate; no paid order or real integration is claimed. Existing `index.html`, `demo.html` and GitHub Pages preview still work.
 
 ## Phase 2 — catalogue and guided discovery
 
-**Build:** add 20 sample product records spread across agreed wellness categories, collection and product pages, filters, search over the small dataset, wish/save behavior if useful, and a short optional preference quiz. Add verified maker/source fields to the schema, but leave unverified fields visibly absent. Use approved or rights-cleared imagery. Add newsletter/vendor interest forms only with consent and a selected destination; until then use a clearly labelled local prototype state.
+**Build:** the current preview has 14 concepts across Food, Fashion, Lifestyle and Home, each with an original aligned concept render. Search, filters and a short optional mood edit work locally. Add product detail pages, verified maker/source fields and a consent-based preference flow after content approval. Add newsletter/vendor interest forms only with consent and a selected destination.
 
-**Acceptance:** all 20 records render with unique slugs and useful alt text; filters/search and empty states work; preference answers can be skipped and are not treated as medical data; placeholder stock and prices are not presented as live offers; mobile product exploration is complete; analytics events use an adapter and contain no sensitive answers.
+**Acceptance:** all 14 records render with useful alt text; filters/search and empty states work; preference answers can be skipped and are not treated as medical data; concept stock and prices are not presented as live offers; mobile product exploration is complete. Product detail slugs and analytics remain later work.
 
 ## Phase 3 — cart, orders and fiat
 
@@ -65,10 +65,10 @@ This layout is a proposal; adjust to the actual app scaffold when coding begins.
 
 ## Decision register
 
-1. **Launch scope:** native ENZA Movement checkout is decided; confirm whether today's prototype should submit real Testnet USDC or stop at review.
+1. **Launch scope:** native ENZA Movement checkout and real Testnet USDC submission are requested. The published Pages preview remains review-only until a hosted verification API exists.
 2. **Primary homepage audience:** shoppers first, with a journey toward conscious consumption.
 3. **Currency:** display in USD and offer USDC; choose first buyer/shipping region and decide whether fiat USD payment is included at launch.
-4. **Catalogue:** approved categories, brand assets and imagery rights for the 20 placeholders.
+4. **Catalogue:** 14 named product references and brand assets are supplied; concept renders are published. Final prices, inventory and claims need approval before sales.
 5. **Wallet UX:** customer-controlled passkey/embedded option, Freighter optionality, recovery and custody requirements.
 6. **Services:** staging/production host and data region; fiat provider; CMS, CRM and analytics only as needed.
 
