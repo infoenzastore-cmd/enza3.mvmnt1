@@ -4,7 +4,7 @@ Status: **plan only**. Read with [`ARCHITECTURE.md`](ARCHITECTURE.md), [`MIGRATI
 
 ## Outcome and smallest path
 
-The first useful milestone is a polished, responsive wellness marketplace **discovery experience**, with 20 honestly labelled placeholder products and a cart that makes clear whether checkout is available. The smallest safe working-commerce path then connects a real inventory/order authority, fiat gateway and optional customer-controlled Stellar Testnet checkout. Do not label placeholders as purchasable stock or a simulated receipt as payment. Avoid installing a CMS, search cluster, CRM, analytics suite, marketplace engine or EVM wallet stack before their corresponding use case and provider decision exist.
+The first useful milestone is a polished, responsive, shopper-first ENZA Movement prototype for holistic wellbeing products and experiences, with 20 honestly labelled placeholders, guided discovery, a cart and a clear USD/USDC payment review. The new marketplace owns checkout. A real Testnet payment, if included in today's prototype, needs server verification and cannot mark placeholder stock as fulfilled. The path to selling then connects approved inventory, persistent orders and selected payment methods. Avoid installing a CMS, search cluster, CRM, analytics suite, marketplace engine or EVM wallet stack before their corresponding use case and provider decision exist.
 
 ## Proposed file map (additions, not edits in this part)
 
@@ -24,7 +24,7 @@ This layout is a proposal; adjust to the actual app scaffold when coding begins.
 
 ## Phase 1 — foundation and identity
 
-**Build:** create the new app scaffold with TypeScript and Tailwind; extract colors, typography and spacing from `movement.css` into tokens; design homepage with editorial wellness hero, Shop EnZa discovery, maker evidence, stories and a secondary optional payments cue. Use the supplied images as references for premium product photography, conscious interiors, mobile shopping and conversion hierarchy. Preserve the wordmark and avoid copying the four-panel screenshot literally. Provide buyer, vendor and community calls to action, but send forms only to a configured server endpoint.
+**Build:** create the new app scaffold with TypeScript and Tailwind; extract colors, typography and spacing from `movement.css` into tokens; design a welcoming shopper-first homepage with editorial wellness hero, products, experiences, maker evidence, stories and a secondary optional payments cue. Use the supplied images as references for premium product photography, conscious interiors, mobile shopping and conversion hierarchy. Preserve the wordmark and avoid copying the four-panel screenshot literally. Provide buyer, vendor and community calls to action, but send forms only to a configured server endpoint.
 
 **Acceptance:** `npm ci`, lint/typecheck/build pass for the new app; homepage and navigation work at phone, tablet and desktop widths; keyboard and screen-reader paths are usable; reduced-motion preference works; title, description, canonical and Open Graph content are deliberate; no paid order or real integration is claimed. Existing `index.html`, `demo.html` and GitHub Pages preview still work.
 
@@ -36,9 +36,9 @@ This layout is a proposal; adjust to the actual app scaffold when coding begins.
 
 ## Phase 3 — cart, orders and fiat
 
-**Build:** decide whether the live store can provide inventory, pricing and checkout through verified APIs. If yes, use it as authority; if no, provision PostgreSQL and a small commerce module with product, variant, inventory, cart, order and payment tables. Add auth only where needed. Select a fiat provider and implement its hosted/SDK checkout and signed webhook flow. Add shipping, tax, cancellation, returns and fulfillment rules approved for the launch region.
+**Build:** provision the new marketplace's inventory, pricing and orders in a selected persistent database, likely PostgreSQL, when real selling begins. Add auth only where needed. Select a fiat provider if USD card/bank checkout is in launch scope, and implement its hosted/SDK checkout and signed webhook flow. Add shipping, tax, cancellation, returns and fulfillment rules approved for the launch region.
 
-**Acceptance:** server recalculates totals in integer minor units; unavailable items cannot be purchased; duplicate callbacks cannot double-fulfill; an order is pending before payment and paid only on verified provider confirmation; failed/cancelled/delayed payment states are clear; existing payment methods at `enza.in` are not affected. Run a provider sandbox order and refund before live selling.
+**Acceptance:** server recalculates USD totals in integer minor units; unavailable items cannot be purchased; duplicate callbacks cannot double-fulfill; an order is pending before payment and paid only on verified provider confirmation; failed/cancelled/delayed payment states are clear. Run a provider sandbox order and refund before live selling.
 
 ## Phase 4 — optional Stellar Testnet USDC
 
@@ -56,7 +56,7 @@ This layout is a proposal; adjust to the actual app scaffold when coding begins.
 
 | Risk/dependency | Required resolution |
 | --- | --- |
-| Unknown live store architecture and API | Obtain source/API access and audit before any integration, migration or claim of feature preservation |
+| New marketplace has no real inventory yet | Keep placeholders clearly labelled and non-fulfillable; approve stock, prices and policies before paid sales |
 | Placeholder catalogue confused with inventory | Label samples, block payment for samples, replace with approved stock before sales |
 | GitHub Pages cannot run server checkout | Keep preview explicitly simulated; choose Node-capable staging host for working orders |
 | Walletless demo mistaken for customer-controlled checkout | Keep server-held Testnet signer isolated; choose a no-extension customer wallet/custody approach before production |
@@ -65,9 +65,9 @@ This layout is a proposal; adjust to the actual app scaffold when coding begins.
 
 ## Decision register
 
-1. **Launch scope:** new marketplace checkout or handoff to `enza.in`? Product data/API owner?
-2. **Primary homepage audience:** shopper, conscious brand or community?
-3. **First sales region and currency:** this determines gateway, tax, shipping and legal copy.
+1. **Launch scope:** native ENZA Movement checkout is decided; confirm whether today's prototype should submit real Testnet USDC or stop at review.
+2. **Primary homepage audience:** shoppers first, with a journey toward conscious consumption.
+3. **Currency:** display in USD and offer USDC; choose first buyer/shipping region and decide whether fiat USD payment is included at launch.
 4. **Catalogue:** approved categories, brand assets and imagery rights for the 20 placeholders.
 5. **Wallet UX:** customer-controlled passkey/embedded option, Freighter optionality, recovery and custody requirements.
 6. **Services:** staging/production host and data region; fiat provider; CMS, CRM and analytics only as needed.
